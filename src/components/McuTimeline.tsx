@@ -15,11 +15,18 @@ import { ComponentSize, Margin } from '../types'
 type Anchor = 'top' | 'bottom'
 type ImportantMeta = { anchor: Anchor; note: string }
 const IMPORTANT: Record<string, ImportantMeta> = {
-  'Iron Man': { anchor: 'top', note: 'Kickstarts the MCU and defines its tone.' },
-  'The Avengers': { anchor: 'bottom', note: 'First major crossover event.' },
-  'Avengers: Endgame': { anchor: 'bottom', note: 'Infinity Saga finale + huge cultural moment.' }
-  // Add more:
-  // 'Captain America: Civil War': { anchor: 'top', note: 'Heroes split; new era begins.' },
+  'Iron Man': { anchor: 'bottom', note: 'Kickstarts the MCU and defines its tone' },
+  'The Avengers': { anchor: 'top', note: 'First major crossover event + Huge box office success' },
+  'Iron Man 3': { anchor: 'bottom', note: 'Phase 2 starts' },
+  'Captain America: The Winter Soldier': { anchor: 'top', note: 'Political thriller tone + Elevated storytelling' },
+  'Captain America: Civil War': { anchor: 'bottom', note: 'Phase 3 starts + Setting up the next Avengers movie' },
+  'Black Panther': { anchor: 'top', note: 'First superhero movie nominated for Best Picture' },
+  'Avengers: Endgame': { anchor: 'bottom', note: 'Infinity Saga finale + Peak MCU + Huge cultural moment + Higest box office/ IMDB rating' },
+  'Black Widow': { anchor: 'top', note: 'Phase 4 starts + Weak rating/box office' },
+  'Spider-Man: No Way Home': { anchor: 'bottom', note: 'Global success + Last “Endgame-level” cultural moment' },
+  'Ant-Man and the Wasp: Quantumania': { anchor: 'top', note: 'Phase 5 starts + Weak performance + Turning point in audience fatigue' },
+  'The Marvels': { anchor: 'bottom', note: 'Worst proifit/rating MCU movie in history' },
+  'The Fantastic 4: First Steps': { anchor: 'top', note: 'Phase 6 starts' }
 }
 
 type Phase = 1 | 2 | 3 | 4 | 5 | 6
@@ -214,7 +221,7 @@ export default function McuTimeline() {
     const svg = d3.select(svgRef.current)
     svg.selectAll('*').remove()
 
-    const margin: Margin = { top: 36, right: 40, bottom: 44, left: 40 }
+    const margin: Margin = { top: 36, right: 70, bottom: 44, left: 70 }
     const width = size.width
     const height = size.height
     const yMid = Math.round(height / 2)
@@ -311,29 +318,31 @@ export default function McuTimeline() {
       .attr('stroke-width', 22)
       .attr('stroke-linecap', 'round')
 
-      // ===== Timeline start/end year labels =====
+    // ===== Timeline start/end year labels =====
 
-      // Left year (start)
-      svg
-        .append('text')
-        .attr('x', x0)
-        .attr('y', yMid + 32)
-        .style('text-anchor', 'start')
-        .style('font-size', '13px')
-        .style('font-weight', 700)
-        .style('fill', 'rgba(0,0,0,0.65)')
-        .text('2008')
+    const yearLabelPad = 10
 
-      // Right year (end)
-      svg
-        .append('text')
-        .attr('x', x1)
-        .attr('y', yMid + 32)
-        .style('text-anchor', 'end')
-        .style('font-size', '13px')
-        .style('font-weight', 700)
-        .style('fill', 'rgba(0,0,0,0.65)')
-        .text('2026')
+    // Left year (start) — text ends exactly at x0
+    svg
+      .append('text')
+      .attr('x', x0 - yearLabelPad - 5)
+      .attr('y', yMid + 5)
+      .style('text-anchor', 'end')
+      .style('font-size', '13px')
+      .style('font-weight', 700)
+      .style('fill', 'rgba(0,0,0,0.65)')
+      .text('2008')
+
+    // Right year (end) — text starts right after x1
+    svg
+      .append('text')
+      .attr('x', x1 + yearLabelPad + 5 )
+      .attr('y', yMid + 5)
+      .style('text-anchor', 'start')
+      .style('font-size', '13px')
+      .style('font-weight', 700)
+      .style('fill', 'rgba(0,0,0,0.65)')
+      .text('2026')
 
     // Phase line segments (contiguous)
     svg
@@ -360,13 +369,14 @@ export default function McuTimeline() {
       .data(normalMovies)
       .join('circle')
       .attr('class', 'movie-dot')
-      .attr('cx', d => {
-        const key = bucketKey(d)
-        const list = moviesByBucket.get(key) ?? [d]
-        const idx = list.findIndex(m => m.id === d.id)
-        const offset = (idx - (list.length - 1) / 2) * dotSpacing
-        return x(d.releaseDate) + offset
-      })
+      // .attr('cx', d => {
+      //   const key = bucketKey(d)
+      //   const list = moviesByBucket.get(key) ?? [d]
+      //   const idx = list.findIndex(m => m.id === d.id)
+      //   const offset = (idx - (list.length - 1) / 2) * dotSpacing
+      //   return x(d.releaseDate) + offset
+      // })
+      .attr('cx', d => x(d.releaseDate))
       .attr('cy', yMid)
       .attr('r', 6)
       .attr('fill', dotColor)
@@ -404,17 +414,17 @@ export default function McuTimeline() {
     const posterW = 48
     const posterH = 72
     const gap = 10
-    const labelW = 110 // thinner (try 100–120)
-    const labelH = 78  // taller so text fits
+    const labelW = 80 // thinner (try 100–120)
+    const labelH = 88  // taller so text fits
     const labelPadX = 10
 
-    const labelGap = 40 // closer to the timeline
+    const labelGap = 25 // closer to the timeline
 
     // helper: poster Y (opposite side of annotation)
     const posterY = (d: Movie) => {
       const annoTop = (d.anchor ?? 'top') === 'top'
       // if annotation is top -> poster is bottom
-      return annoTop ? yMid + 18 : yMid - 18 - posterH
+      return annoTop ? yMid + 20 : yMid - 20 - posterH
     }
 
     // helper: label Y (annotation side)
@@ -489,42 +499,65 @@ export default function McuTimeline() {
     //   .attr('fill', 'rgba(255,255,255,0.96)')
     //   .attr('stroke', 'rgba(0,0,0,0.14)')
 
+   // --- Title (wrapped) ---
+    const titleStartY = 2
+    const titleFontSize = 9
+    const titleLineEm = 1.15
+
     const titleText = anno
       .append('text')
       .attr('x', 0)
-      .attr('y', d => labelY(d) + 18)
+      .attr('y', d => labelY(d) + titleStartY )
       .style('text-anchor', 'middle')
-      .style('font-size', '12px')
-      .style('font-weight', 900)
-      .style('fill', 'rgba(0,0,0,0.85)')
-
-    titleText.append('tspan').text(d => d.title)
-
-    titleText
-      .append('tspan')
-      .attr('x', 0)
-      .attr('dy', '1.15em')
-      .style('font-size', '11px')
+      .style('font-size', `${titleFontSize}px`)
       .style('font-weight', 700)
-      .style('fill', 'rgba(0,0,0,0.55)')
-      .text(d => String(d.releaseDate.getFullYear()))
+      .style('fill', 'rgba(0,0,0,0.85)')
+      .text(d => d.title)
 
-    addTextHalo(titleText as any, 4)
+    // Wrap the title into multiple tspans
+    titleText.call(sel => wrapSvgText(sel as any, labelW - 1 * labelPadX))
 
-    // Note (wrapped)
+    // Add year on the NEXT line (and store how many title lines we used)
+    titleText.each(function (d) {
+      const textNode = d3.select(this)
+      const lineCount = textNode.selectAll('tspan').size()
+
+      ;(d as any).__titleLines = lineCount
+
+      textNode
+        .append('tspan')
+        .attr('x', 0)
+        .attr('dy', `${titleLineEm}em`) // ✅ just one extra line down
+        .style('font-size', '9px')
+        .style('font-weight', 500)
+        .style('fill', 'rgba(0,0,0,0.55)')
+        .text(String(d.releaseDate.getFullYear()))
+    })
+
+    addTextHalo(titleText as any, 3)
+
+    // --- Note (wrapped), positioned AFTER title+year dynamically ---
+    const noteFontSize = 9
+    const noteLinePx = noteFontSize * 1.15
+    const noteTopPadPx = -9
+
     const noteText = anno
       .append('text')
       .attr('x', 0)
-      .attr('y', d => labelY(d) + 48)
+      .attr('y', d => {
+        const titleLines = (d as any).__titleLines ?? 1
+        // title block height = (titleLines + 1 year line) * title line height (px-ish)
+        const titleBlockPx = (titleLines + 1) * (titleFontSize * 1.15)
+        return labelY(d) + titleStartY + titleBlockPx + noteTopPadPx + noteLinePx
+      })
       .style('text-anchor', 'middle')
-      .style('font-size', '11px')
+      .style('font-size', `${noteFontSize}px`)
       .style('font-weight', 600)
       .style('fill', 'rgba(0,0,0,0.65)')
       .text(d => d.note ?? '')
 
     noteText.call(sel => wrapSvgText(sel as any, labelW - 2 * labelPadX))
-
-    addTextHalo(noteText as any, 4)
+    addTextHalo(noteText as any, 3)
 
     function addTextHalo(sel: d3.Selection<SVGTextElement, any, any, any>, strokeWidth = 4) {
       sel
@@ -535,8 +568,6 @@ export default function McuTimeline() {
         .style('stroke-width', strokeWidth)
         .style('stroke-linejoin', 'round')
     }
-
-    
 
     // ===== Legend =====
     const legend = svg.append('g').attr('transform', `translate(${margin.left}, ${height - margin.bottom + 10})`)
