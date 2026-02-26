@@ -4,6 +4,7 @@ import Box from '@mui/material/Box'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import { grey } from '@mui/material/colors'
 import McuTimeline from './components/McuTimeline'
+import RevenueBarChart from './components/RevenueBarChart'
 
 const theme = createTheme({
   palette: {
@@ -14,7 +15,7 @@ const theme = createTheme({
 
 function Layout() {
   const TIMELINE_HEIGHT = 550
-
+  const BAR_CHART_HEIGHT = 500
   return (
     <Box
       id="main-container"
@@ -24,7 +25,7 @@ function Layout() {
         p: 1
       }}
     >
-      <Stack spacing={1} sx={{ height: '100%', width: '100%' }}>
+      <Stack spacing={5} sx={{ height: '100%', width: '100%' }}>
         {/* ===== TIMELINE PANEL (TOP) ===== */}
         <Grid
           container
@@ -67,8 +68,16 @@ function Layout() {
         </Grid>
 
         {/* ===== BOTTOM PANEL (FUTURE VIEWS) ===== */}
-        <Grid>
-         
+        <Grid container spacing = {1} sx = {{height: BAR_CHART_HEIGHT, flex: "0 0 auto"}}>
+          <Grid item xs = {12} sx = {{height: "100%"}}>
+            <Box sx = {{height: "100%", width: "100%", display: "flex", justifyContent: "center"}}>
+              <Box sx = {{width: "95vw", maxWidth: 1800, height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#ffffff", display: "flex"}}>
+                <Box sx = {{width: "100%", height: "100%", minWidth: 0}}>
+                  <RevenueBarChart/>
+                </Box>
+              </Box>
+            </Box>
+          </Grid>
         </Grid>
       </Stack>
     </Box>
