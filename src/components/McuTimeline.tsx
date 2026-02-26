@@ -21,12 +21,15 @@ const IMPORTANT: Record<string, ImportantMeta> = {
   'Captain America: The Winter Soldier': { anchor: 'top', note: 'Political thriller tone + Elevated storytelling' },
   'Captain America: Civil War': { anchor: 'bottom', note: 'Phase 3 starts + Setting up the next Avengers movie' },
   'Black Panther': { anchor: 'top', note: 'First superhero movie nominated for Best Picture' },
-  'Avengers: Endgame': { anchor: 'bottom', note: 'Infinity Saga finale + Peak MCU + Huge cultural moment + Higest box office/ IMDB rating' },
+  'Avengers: Endgame': {
+    anchor: 'bottom',
+    note: 'Infinity Saga finale + Peak MCU + Huge cultural moment + Higest box office/ IMDB rating'
+  },
   'Black Widow': { anchor: 'top', note: 'Phase 4 starts + Weak rating/box office' },
   'Spider-Man: No Way Home': { anchor: 'bottom', note: 'Global success + Last “Endgame-level” cultural moment' },
   'Ant-Man and the Wasp: Quantumania': { anchor: 'top', note: 'Phase 5 starts + Weak performance + Turning point in audience fatigue' },
   'The Marvels': { anchor: 'bottom', note: 'Worst proifit/rating MCU movie in history' },
-  'The Fantastic 4: First Steps': { anchor: 'top', note: 'Phase 6 starts' }
+  'The Fantastic 4: First Steps': { anchor: 'top', note: 'Phase 6 starts + Slight underperformance in rating/box office' }
 }
 
 type Phase = 1 | 2 | 3 | 4 | 5 | 6
@@ -221,7 +224,7 @@ export default function McuTimeline() {
     const svg = d3.select(svgRef.current)
     svg.selectAll('*').remove()
 
-    const margin: Margin = { top: 36, right: 70, bottom: 44, left: 70 }
+    const margin: Margin = { top: 36, right: 70, bottom: 20, left: 70 }
     const width = size.width
     const height = size.height
     const yMid = Math.round(height / 2)
@@ -248,12 +251,6 @@ export default function McuTimeline() {
     // Split important / normal
     const importantMovies = movies.filter(m => m.important)
     const normalMovies = movies.filter(m => !m.important)
-
-    // Slight jitter for normal movies with same year+phase
-    const yearBucket = (d: Movie) => d.releaseDate.getFullYear()
-    const bucketKey = (d: Movie) => `${d.phase}-${yearBucket(d)}`
-    const moviesByBucket = d3.group(normalMovies, bucketKey)
-    const dotSpacing = 14
 
     // Tooltip (ONLY for normal movies)
     const tooltip = root
@@ -319,10 +316,8 @@ export default function McuTimeline() {
       .attr('stroke-linecap', 'round')
 
     // ===== Timeline start/end year labels =====
-
     const yearLabelPad = 10
 
-    // Left year (start) — text ends exactly at x0
     svg
       .append('text')
       .attr('x', x0 - yearLabelPad - 5)
@@ -333,10 +328,9 @@ export default function McuTimeline() {
       .style('fill', 'rgba(0,0,0,0.65)')
       .text('2008')
 
-    // Right year (end) — text starts right after x1
     svg
       .append('text')
-      .attr('x', x1 + yearLabelPad + 5 )
+      .attr('x', x1 + yearLabelPad + 5)
       .attr('y', yMid + 5)
       .style('text-anchor', 'start')
       .style('font-size', '13px')
@@ -362,26 +356,31 @@ export default function McuTimeline() {
 
     // Dots group
     const gDots = svg.append('g').attr('class', 'dots')
+    const dotR = 6
+    const dotStrokeW = 1.5
+    const dotOuterR = dotR + dotStrokeW / 2
 
-    // Normal dots (with jitter) + tooltip hover
+    // connector styling + spacing so the line starts OUTSIDE the dot
+    const connectorPosterW = 2
+    const connectorLabelW = 1.5
+    const connectorGap = 1.5 // extra pixels outside the dot edge
+
+    // end dots at connector endpoints
+    const endDotR = 2.6
+    const endInset = 0 // set to 2 if you want dots slightly inside the box edge
+
+    // Normal dots + tooltip hover
     const normalNodes = gDots
       .selectAll('circle.movie-dot')
       .data(normalMovies)
       .join('circle')
       .attr('class', 'movie-dot')
-      // .attr('cx', d => {
-      //   const key = bucketKey(d)
-      //   const list = moviesByBucket.get(key) ?? [d]
-      //   const idx = list.findIndex(m => m.id === d.id)
-      //   const offset = (idx - (list.length - 1) / 2) * dotSpacing
-      //   return x(d.releaseDate) + offset
-      // })
       .attr('cx', d => x(d.releaseDate))
       .attr('cy', yMid)
-      .attr('r', 6)
+      .attr('r', dotR)
       .attr('fill', dotColor)
       .attr('stroke', 'black')
-      .attr('stroke-width', 1.5)
+      .attr('stroke-width', dotStrokeW)
       .style('cursor', 'default')
 
     normalNodes
@@ -397,72 +396,195 @@ export default function McuTimeline() {
         d3.select(this).attr('r', 6)
       })
 
+    // ===== Important posters + annotations (opposite sides) =====
+    const posterW = 48
+    const posterH = 72
+    const labelW = 80
+    const labelH = 88
+    const labelPadX = 10
+    const labelGap = 35
+
+    // =========================
+    // Lane assignment (IMPORTANT only)
+    // =========================
+    type LaneDatum = Movie & { __laneTop?: number; __laneBottom?: number }
+    const importantWithLanes: LaneDatum[] = importantMovies.map(d => d as LaneDatum)
+
+    const xPad = 10
+    const lanePad = 10
+    const laneStep = Math.max(labelH, posterH) + lanePad
+
+    function assignLanes(items: LaneDatum[], getHalfWidth: (d: LaneDatum) => number, side: 'top' | 'bottom') {
+      const lanes: number[] = []
+      const sorted = [...items].sort((a, b) => x(a.releaseDate) - x(b.releaseDate))
+
+      for (const d of sorted) {
+        const cx = x(d.releaseDate)
+        const half = getHalfWidth(d) + xPad
+        const left = cx - half
+        const right = cx + half
+
+        let lane = 0
+        while (lane < lanes.length && left <= lanes[lane]) lane++
+
+        if (lane === lanes.length) lanes.push(right)
+        else lanes[lane] = right
+
+        if (side === 'top') d.__laneTop = lane
+        else d.__laneBottom = lane
+      }
+    }
+
+    // TOP side: label if annoTop else poster
+    assignLanes(
+      importantWithLanes,
+      d => {
+        const annoTop = (d.anchor ?? 'top') === 'top'
+        const w = annoTop ? labelW : posterW
+        return w / 2
+      },
+      'top'
+    )
+
+    // BOTTOM side: poster if annoTop else label
+    assignLanes(
+      importantWithLanes,
+      d => {
+        const annoTop = (d.anchor ?? 'top') === 'top'
+        const w = annoTop ? posterW : labelW
+        return w / 2
+      },
+      'bottom'
+    )
+
+    const getTopLane = (d: LaneDatum) => d.__laneTop ?? 0
+    const getBottomLane = (d: LaneDatum) => d.__laneBottom ?? 0
+
+    // helper: poster Y (opposite side of annotation) + lanes
+    const posterY = (d: LaneDatum) => {
+      const annoTop = (d.anchor ?? 'top') === 'top'
+      const posterOnBottom = annoTop
+      if (posterOnBottom) {
+        const lane = getBottomLane(d)
+        return yMid + 40 + lane * laneStep
+      } else {
+        const lane = getTopLane(d)
+        return yMid - 40 - posterH - lane * laneStep
+      }
+    }
+
+    // helper: label Y (annotation side) + lanes
+    const labelY = (d: LaneDatum) => {
+      const annoTop = (d.anchor ?? 'top') === 'top'
+      if (annoTop) {
+        const lane = getTopLane(d)
+        return yMid - labelGap - labelH - lane * laneStep
+      } else {
+        const lane = getBottomLane(d)
+        return yMid + labelGap + lane * laneStep
+      }
+    }
+
+    // Start connector slightly outside the dot (accounts for dot stroke + line cap)
+    const dotEdgeY = (d: LaneDatum, strokeW: number) => {
+      const annoTop = (d.anchor ?? 'top') === 'top'
+      const pad = dotOuterR + strokeW / 2 + connectorGap
+      return annoTop ? yMid - pad : yMid + pad
+    }
+
+    // ===== EXACT connector endpoints based on poster/label geometry =====
+    const posterTopY = (d: LaneDatum) => posterY(d)
+    const posterBottomY = (d: LaneDatum) => posterY(d) + posterH
+
+    const labelTopY = (d: LaneDatum) => labelY(d)
+    const labelBottomY = (d: LaneDatum) => labelY(d) + labelH
+
+    // poster endpoint on the edge facing the timeline
+    const posterEndY = (d: LaneDatum) => {
+      const annoTop = (d.anchor ?? 'top') === 'top'
+      const posterIsBottom = annoTop // annoTop => poster on bottom
+      return posterIsBottom ? posterTopY(d) + endInset : posterBottomY(d) - endInset
+    }
+
+    // label endpoint on the edge facing the timeline
+    const labelEndY = (d: LaneDatum) => {
+      const annoTop = (d.anchor ?? 'top') === 'top'
+      return annoTop ? labelBottomY(d) - endInset : labelTopY(d) + endInset
+    }
+
     // Important dots (NO hover handlers)
     gDots
       .selectAll('circle.important-dot')
-      .data(importantMovies)
+      .data(importantWithLanes)
       .join('circle')
       .attr('class', 'important-dot')
       .attr('cx', d => x(d.releaseDate))
       .attr('cy', yMid)
-      .attr('r', 6)
+      .attr('r', dotR)
       .attr('fill', dotColor)
       .attr('stroke', 'black')
-      .attr('stroke-width', 1.5)
+      .attr('stroke-width', dotStrokeW)
 
-    // ===== Important posters + annotations (opposite sides) =====
-    const posterW = 48
-    const posterH = 72
-    const gap = 10
-    const labelW = 80 // thinner (try 100–120)
-    const labelH = 88  // taller so text fits
-    const labelPadX = 10
-
-    const labelGap = 25 // closer to the timeline
-
-    // helper: poster Y (opposite side of annotation)
-    const posterY = (d: Movie) => {
-      const annoTop = (d.anchor ?? 'top') === 'top'
-      // if annotation is top -> poster is bottom
-      return annoTop ? yMid + 20 : yMid - 20 - posterH
-    }
-
-    // helper: label Y (annotation side)
-    const labelY = (d: Movie) => {
-      const annoTop = (d.anchor ?? 'top') === 'top'
-      return annoTop
-        ? yMid - labelGap - labelH // close above line
-        : yMid + labelGap          // close below line
-    }
-
-    // helper: anchor point where connector ends (top/bottom center of poster)
-    const posterAnchorY = (d: Movie) => {
-      const y = posterY(d)
-      const annoTop = (d.anchor ?? 'top') === 'top'
-      // If poster is bottom, connect to its TOP edge; if poster is top, connect to its BOTTOM edge
-      return annoTop ? y : y + posterH
-    }
-
+    // Annotations group (behind dots)
     const gAnno = svg.append('g').attr('class', 'important-annotations')
+    gAnno.lower()
 
-    // Connector line: ONLY dot -> poster (not to label)
+    // Connector: dot -> poster
     gAnno
-      .selectAll('line.connector')
-      .data(importantMovies)
+      .selectAll('line.connector-poster')
+      .data(importantWithLanes)
       .join('line')
-      .attr('class', 'connector')
+      .attr('class', 'connector-poster')
       .attr('x1', d => x(d.releaseDate))
       .attr('x2', d => x(d.releaseDate))
-      .attr('y1', yMid)
-      .attr('y2', d => posterAnchorY(d))
+      .attr('y1', d => dotEdgeY(d, connectorPosterW))
+      .attr('y2', d => posterEndY(d))
       .attr('stroke', 'rgba(0,0,0,0.18)')
-      .attr('stroke-width', 2)
+      .attr('stroke-width', connectorPosterW)
       .attr('stroke-linecap', 'round')
+
+    // End dot: poster connector
+    gAnno
+      .selectAll('circle.connector-poster-end')
+      .data(importantWithLanes)
+      .join('circle')
+      .attr('class', 'connector-poster-end')
+      .attr('cx', d => x(d.releaseDate))
+      .attr('cy', d => posterEndY(d))
+      .attr('r', endDotR)
+      .attr('fill', 'black')
+      .attr('stroke', 'none')
+
+    // Connector: dot -> annotation (label)
+    gAnno
+      .selectAll('line.connector-label')
+      .data(importantWithLanes)
+      .join('line')
+      .attr('class', 'connector-label')
+      .attr('x1', d => x(d.releaseDate))
+      .attr('x2', d => x(d.releaseDate))
+      .attr('y1', d => dotEdgeY(d, connectorLabelW))
+      .attr('y2', d => labelEndY(d))
+      .attr('stroke', 'rgba(0,0,0,0.12)')
+      .attr('stroke-width', connectorLabelW)
+      .attr('stroke-linecap', 'round')
+
+    // End dot: label connector
+    gAnno
+      .selectAll('circle.connector-label-end')
+      .data(importantWithLanes)
+      .join('circle')
+      .attr('class', 'connector-label-end')
+      .attr('cx', d => x(d.releaseDate))
+      .attr('cy', d => labelEndY(d))
+      .attr('r', endDotR)
+      .attr('fill', 'black')
+      .attr('stroke', 'none')
 
     // one group per important movie (x translated only)
     const anno = gAnno
       .selectAll('g.anno')
-      .data(importantMovies)
+      .data(importantWithLanes)
       .join('g')
       .attr('class', 'anno')
       .attr('transform', d => `translate(${x(d.releaseDate)}, 0)`)
@@ -488,46 +610,32 @@ export default function McuTimeline() {
       .attr('height', posterH)
       .attr('preserveAspectRatio', 'xMidYMid slice')
 
-    // // Label card background (annotation side)
-    // anno
-    //   .append('rect')
-    //   .attr('x', -labelW / 2)
-    //   .attr('y', d => labelY(d))
-    //   .attr('width', labelW)
-    //   .attr('height', labelH)
-    //   .attr('rx', 12)
-    //   .attr('fill', 'rgba(255,255,255,0.96)')
-    //   .attr('stroke', 'rgba(0,0,0,0.14)')
-
-   // --- Title (wrapped) ---
-    const titleStartY = 2
+    // --- Title (wrapped) ---
+    const titleStartY = -2
     const titleFontSize = 9
     const titleLineEm = 1.15
 
     const titleText = anno
       .append('text')
       .attr('x', 0)
-      .attr('y', d => labelY(d) + titleStartY )
+      .attr('y', d => labelY(d) + titleStartY)
       .style('text-anchor', 'middle')
       .style('font-size', `${titleFontSize}px`)
       .style('font-weight', 700)
       .style('fill', 'rgba(0,0,0,0.85)')
       .text(d => d.title)
 
-    // Wrap the title into multiple tspans
     titleText.call(sel => wrapSvgText(sel as any, labelW - 1 * labelPadX))
 
-    // Add year on the NEXT line (and store how many title lines we used)
-    titleText.each(function (d) {
+    titleText.each(function (d: any) {
       const textNode = d3.select(this)
       const lineCount = textNode.selectAll('tspan').size()
-
-      ;(d as any).__titleLines = lineCount
+      d.__titleLines = lineCount
 
       textNode
         .append('tspan')
         .attr('x', 0)
-        .attr('dy', `${titleLineEm}em`) // ✅ just one extra line down
+        .attr('dy', `${titleLineEm}em`)
         .style('font-size', '9px')
         .style('font-weight', 500)
         .style('fill', 'rgba(0,0,0,0.55)')
@@ -539,14 +647,13 @@ export default function McuTimeline() {
     // --- Note (wrapped), positioned AFTER title+year dynamically ---
     const noteFontSize = 9
     const noteLinePx = noteFontSize * 1.15
-    const noteTopPadPx = -9
+    const noteTopPadPx = -7
 
     const noteText = anno
       .append('text')
       .attr('x', 0)
       .attr('y', d => {
         const titleLines = (d as any).__titleLines ?? 1
-        // title block height = (titleLines + 1 year line) * title line height (px-ish)
         const titleBlockPx = (titleLines + 1) * (titleFontSize * 1.15)
         return labelY(d) + titleStartY + titleBlockPx + noteTopPadPx + noteLinePx
       })

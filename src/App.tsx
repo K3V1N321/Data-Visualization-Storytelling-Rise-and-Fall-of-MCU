@@ -13,7 +13,7 @@ const theme = createTheme({
 })
 
 function Layout() {
-  const TIMELINE_HEIGHT = 420
+  const TIMELINE_HEIGHT = 550
 
   return (
     <Box
