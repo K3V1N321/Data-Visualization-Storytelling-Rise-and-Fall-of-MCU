@@ -6,11 +6,11 @@ import { ComponentSize, Margin } from '../types'
 /** =========================
  *  Manual “important movies”
  *  =========================
- *  - Key MUST match CSV `title` exactly
- *  - You manually write the note
- *  - anchor controls which side gets the ANNOTATION.
- *      - anchor = 'top'    => annotation on top, poster on bottom
- *      - anchor = 'bottom' => annotation on bottom, poster on top
+ *  Key MUST match CSV `title` exactly
+ *  manually write the note
+ *  anchor controls which side gets the ANNOTATION.
+ *       anchor = 'top'    => annotation on top, poster on bottom
+ *       anchor = 'bottom' => annotation on bottom, poster on top
  */
 type Anchor = 'top' | 'bottom'
 type ImportantMeta = { anchor: Anchor; note: string }
@@ -21,13 +21,10 @@ const IMPORTANT: Record<string, ImportantMeta> = {
   'Captain America: The Winter Soldier': { anchor: 'top', note: 'Political thriller tone + Elevated storytelling' },
   'Captain America: Civil War': { anchor: 'bottom', note: 'Phase 3 starts + Setting up the next Avengers movie' },
   'Black Panther': { anchor: 'top', note: 'First superhero movie nominated for Best Picture' },
-  'Avengers: Endgame': {
-    anchor: 'bottom',
-    note: 'Infinity Saga finale + Peak MCU + Huge cultural moment + Higest box office/ IMDB rating'
-  },
-  'Black Widow': { anchor: 'top', note: 'Phase 4 starts + Weak rating/box office' },
+  'Avengers: Endgame': {anchor: 'bottom', note: 'Infinity Saga finale + Peak MCU + Huge cultural moment + Higest box office/ IMDB rating'},
+  'Black Widow': { anchor: 'top', note: 'Phase 4 starts + Weak rating/box office + Weak start after Endgame' },
   'Spider-Man: No Way Home': { anchor: 'bottom', note: 'Global success + Last “Endgame-level” cultural moment' },
-  'Ant-Man and the Wasp: Quantumania': { anchor: 'top', note: 'Phase 5 starts + Weak performance + Turning point in audience fatigue' },
+  'Ant-Man and the Wasp: Quantumania': { anchor: 'bottom', note: 'Phase 5 starts + Weak Performance + Turning point in audience fatigue' },
   'The Marvels': { anchor: 'bottom', note: 'Worst proifit/rating MCU movie in history' },
   'The Fantastic 4: First Steps': { anchor: 'top', note: 'Phase 6 starts + Slight underperformance in rating/box office' }
 }
@@ -367,7 +364,13 @@ export default function McuTimeline() {
 
     // end dots at connector endpoints
     const endDotR = 2.6
-    const endInset = 0 // set to 2 if you want dots slightly inside the box edge
+
+    // padding between end dot and poster edge
+    const posterEndPad = 8 // px gap between poster and end-dot/line
+
+    // small padding for annotation connector endpoints
+    const annoEndPadTop = 0    // when annotation is on top: dot sits a bit below note (toward timeline)
+    const annoEndPadBottom = 15  // when annotation is on bottom: dot sits a bit ABOVE title start (toward timeline)
 
     // Normal dots + tooltip hover
     const normalNodes = gDots
@@ -503,17 +506,33 @@ export default function McuTimeline() {
     const posterEndY = (d: LaneDatum) => {
       const annoTop = (d.anchor ?? 'top') === 'top'
       const posterIsBottom = annoTop // annoTop => poster on bottom
-      return posterIsBottom ? posterTopY(d) + endInset : posterBottomY(d) - endInset
+
+      // edge facing the timeline, but pulled away from poster by posterEndPad
+      return posterIsBottom
+        ? posterTopY(d) - posterEndPad           // poster below timeline: pull endpoint UP
+        : posterBottomY(d) + posterEndPad        // poster above timeline: pull endpoint DOWN
     }
 
     // label endpoint on the edge facing the timeline
     const labelEndY = (d: LaneDatum) => {
       const annoTop = (d.anchor ?? 'top') === 'top'
-      return annoTop ? labelBottomY(d) - endInset : labelTopY(d) + endInset
+
+      // fallbacks in case bbox isn't available for some reason
+      const titleTop = (d as any).__titleTopY ?? labelTopY(d)
+      const noteBottom = (d as any).__noteBottomY ?? labelBottomY(d)
+
+      if (annoTop) {
+        // annotation is TOP: end at the END of the annotation text (note bottom),
+        // plus a tiny pad toward the timeline
+        return noteBottom + annoEndPadTop - 5
+      } else {
+        // annotation is BOTTOM: end BEFORE the title starts (slightly above title top)
+        return titleTop - annoEndPadBottom
+      }
     }
 
-    // Important dots (NO hover handlers)
-    gDots
+    // Important dots (WITH hover handlers)
+    const importantNodes = gDots
       .selectAll('circle.important-dot')
       .data(importantWithLanes)
       .join('circle')
@@ -524,6 +543,20 @@ export default function McuTimeline() {
       .attr('fill', dotColor)
       .attr('stroke', 'black')
       .attr('stroke-width', dotStrokeW)
+      .style('cursor', 'default')
+
+    importantNodes
+      .on('mouseenter', function (event, d) {
+        showTooltip(event as unknown as MouseEvent, d)
+        d3.select(this).attr('r', 7)
+      })
+      .on('mousemove', function (event, d) {
+        showTooltip(event as unknown as MouseEvent, d)
+      })
+      .on('mouseleave', function () {
+        tooltip.style('display', 'none')
+        d3.select(this).attr('r', 6)
+    })
 
     // Annotations group (behind dots)
     const gAnno = svg.append('g').attr('class', 'important-annotations')
@@ -642,6 +675,12 @@ export default function McuTimeline() {
         .text(String(d.releaseDate.getFullYear()))
     })
 
+    // measure title top (for bottom-annotation endpoint)
+    titleText.each(function (d: any) {
+      const bb = (this as SVGTextElement).getBBox()
+      d.__titleTopY = bb.y
+    })
+
     addTextHalo(titleText as any, 3)
 
     // --- Note (wrapped), positioned AFTER title+year dynamically ---
@@ -665,6 +704,12 @@ export default function McuTimeline() {
 
     noteText.call(sel => wrapSvgText(sel as any, labelW - 2 * labelPadX))
     addTextHalo(noteText as any, 3)
+
+    // measure note bottom (for top-annotation endpoint)
+    noteText.each(function (d: any) {
+      const bb = (this as SVGTextElement).getBBox()
+      d.__noteBottomY = bb.y + bb.height
+    })
 
     function addTextHalo(sel: d3.Selection<SVGTextElement, any, any, any>, strokeWidth = 4) {
       sel

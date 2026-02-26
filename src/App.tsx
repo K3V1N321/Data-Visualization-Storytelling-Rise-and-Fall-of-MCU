@@ -14,7 +14,7 @@ const theme = createTheme({
 })
 
 function Layout() {
-  const TIMELINE_HEIGHT = 550
+  const TIMELINE_HEIGHT = 500
   const BAR_CHART_HEIGHT = 500
   return (
     <Box
