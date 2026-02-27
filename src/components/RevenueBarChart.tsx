@@ -10,7 +10,6 @@ type Movie = {
     title: string
     releaseYear: number
     isMarvel: string
-    budget: number
     revenue: number
 };
 
@@ -44,7 +43,6 @@ export default function RevenueBarChart() {
                     title: dataPoint.title,
                     releaseYear: Number(dataPoint.release_date.split("-")[0]),
                     isMarvel: dataPoint.is_marvel,
-                    budget: Number(dataPoint.budget),
                     revenue: Number(dataPoint.revenue) / 1000000000
                 }
                 moviesData.push(movieData);
@@ -90,7 +88,7 @@ export default function RevenueBarChart() {
 
         // Get the revenue of marvel movies and other movies for each year
         let formattedData: RevenueSplit[] = [];
-        const years = [... new Set(movies.map((movie) => movie.releaseYear))];
+        const years = [... new Set(movies.map((movie) => movie.releaseYear))].sort((a, b) => a - b);
         for (const year of years) {
             const yearMovies = movies.filter((movie) => movie.releaseYear == year);
             const revenueInfo: RevenueSplit = {
@@ -99,12 +97,10 @@ export default function RevenueBarChart() {
                 otherMoviesRevenue: d3.sum(yearMovies.filter((movie) => movie.isMarvel == "false").map((movie) => movie.revenue))
             }
             formattedData.push(revenueInfo);
-
         }
 
         // Get max total revenue
         const maxRevenue = d3.max(formattedData, (dataPoint) => dataPoint.marvelRevenue + dataPoint.otherMoviesRevenue);
-        
         const xScale = d3.scaleBand()
         .domain(formattedData.map((dataPoint) => dataPoint.year))
         .range([margin.left, size.width - margin.right]);
@@ -298,7 +294,7 @@ export default function RevenueBarChart() {
         .style("text-anchor", "middle")
         .style("font-size", '20px')
         .style("font-weight", 900)
-        .text("Annual Top 10 Grossing Movies Revnue: Marvel's Contribution (2008 - 2025)") 
+        .text("Annual Top 10 Grossing Movies Total Revnue: Marvel's Contribution (2008 - 2025)") 
     }
 
 
