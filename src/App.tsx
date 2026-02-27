@@ -4,6 +4,7 @@ import Box from '@mui/material/Box'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import { grey } from '@mui/material/colors'
 import McuTimeline from './components/McuTimeline'
+import McuConnections from './components/McuConnections'
 import RevenueBarChart from './components/RevenueBarChart'
 
 const theme = createTheme({
@@ -15,6 +16,7 @@ const theme = createTheme({
 
 function Layout() {
   const TIMELINE_HEIGHT = 500
+  const CONNECTION_HEIGHT = 400
   const BAR_CHART_HEIGHT = 500
   return (
     <Box
@@ -48,9 +50,9 @@ function Layout() {
               {/* This is the actual card */}
               <Box
                 sx={{
-                  width: '95vw',        // ✅ makes it wide (viewport-based)
-                  maxWidth: 1800,       // ✅ cap so it doesn’t get ridiculous
-                  height: '100%',       // ✅ follow panel height
+                  width: '95vw',       
+                  maxWidth: 1800,       
+                  height: '100%',       
                   p: 2,
                   border: '1px solid #e0e0e0',
                   borderRadius: 2,
@@ -61,6 +63,44 @@ function Layout() {
                 {/* This ensures McuTimeline gets the full area */}
                 <Box sx={{ width: '100%', height: '100%', minWidth: 0 }}>
                   <McuTimeline />
+                </Box>
+              </Box>
+            </Box>
+          </Grid>
+        </Grid>
+
+       {/* ===== CONNECTIONS PANEL ===== */}
+        <Grid
+          container
+          spacing={1}
+          sx={{
+            height: CONNECTION_HEIGHT,
+            flex: '0 0 auto'
+          }}
+        >
+          <Grid item xs={12} sx={{ height: '100%' }}>
+            <Box
+              sx={{
+                height: '100%',
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center'
+              }}
+            >
+              <Box
+                sx={{
+                  width: '95vw',
+                  maxWidth: 1800,
+                  height: '100%',
+                  p: 2,
+                  border: '1px solid #e0e0e0',
+                  borderRadius: 2,
+                  bgcolor: '#fafafa',
+                  display: 'flex'
+                }}
+              >
+                <Box sx={{ width: '100%', height: '100%', minWidth: 0 }}>
+                  <McuConnections />
                 </Box>
               </Box>
             </Box>

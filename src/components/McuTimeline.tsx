@@ -266,31 +266,34 @@ export default function McuTimeline() {
       .style('padding', '10px')
       .style('max-width', '260px')
 
-    const containerBox = containerRef.current.getBoundingClientRect()
     const showTooltip = (event: MouseEvent, d: Movie) => {
-      const imgHtml = d.posterUrl
-        ? `<img src="${d.posterUrl}" alt="${d.title}" style="width:54px;height:81px;border-radius:10px;border:1px solid rgba(0,0,0,0.12);object-fit:cover;" />`
-        : `<div style="width:54px;height:81px;border-radius:10px;border:1px dashed rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(0,0,0,0.5);">No poster</div>`
+    const containerBox = containerRef.current!.getBoundingClientRect()
 
-      tooltip
-        .style('display', 'block')
-        .html(
-          `
-          <div style="display:flex; gap:10px; align-items:center;">
-            ${imgHtml}
-            <div style="min-width:0;">
-              <div style="font-weight:800; font-size:13px; color: rgba(0,0,0,0.85); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:170px;">${d.title}</div>
-              <div style="font-size:12px; color: rgba(0,0,0,0.65); margin-top:2px;">${d.releaseDateStr} • Phase ${d.phase}</div>
-            </div>
+    const imgHtml = d.posterUrl
+      ? `<img src="${d.posterUrl}" alt="${d.title}" style="width:54px;height:81px;border-radius:10px;border:1px solid rgba(0,0,0,0.12);object-fit:cover;" />`
+      : `<div style="width:54px;height:81px;border-radius:10px;border-radius:10px;border:1px dashed rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(0,0,0,0.5);">No poster</div>`
+
+    tooltip
+      .style('display', 'block')
+      .html(
+        `
+        <div style="display:flex; gap:10px; align-items:center;">
+          ${imgHtml}
+          <div style="min-width:0;">
+            <div style="font-weight:800; font-size:13px; color: rgba(0,0,0,0.85); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:170px;">${d.title}</div>
+            <div style="font-size:12px; color: rgba(0,0,0,0.65); margin-top:2px;">${d.releaseDateStr} • Phase ${d.phase}</div>
           </div>
-          `.trim()
-        )
+        </div>
+        `.trim()
+      )
 
-      const px = event.clientX - containerBox.left
-      const py = event.clientY - containerBox.top
-      tooltip.style('left', `${Math.min(px + 14, containerBox.width - 270)}px`).style('top', `${Math.max(py - 10, 8)}px`)
-    }
+    const px = event.clientX - containerBox.left
+    const py = event.clientY - containerBox.top
 
+    tooltip
+      .style('left', `${Math.min(px + 14, containerBox.width - 270)}px`)
+      .style('top', `${Math.max(py - 10, 8)}px`)
+  }
     // Title
     svg
       .append('text')
