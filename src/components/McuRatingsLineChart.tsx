@@ -21,11 +21,34 @@ type YearlyAverageRating = {
 
 export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear}) {
     const lineRef = useRef<HTMLDivElement> (null);
-    const margin: Margin = { top: 40, right: 40, bottom: 40, left: 40 }
+    const margin: Margin = { top: 60, right: 40, bottom: 40, left: 40 }
     const [size, setSize] = useState<ComponentSize>({width: 0, height: 0});
     const onResize = useDebounceCallback((size: ComponentSize) => setSize(size), 200);
     const [movies, setMovies] = useState<Movie[]>([]);
+    const container = d3.select("#average-ratings-container");
+    const svg = d3.select("#average-ratings-svg");
 
+    // Tooltip for points
+    const tooltipElement = container.selectChild("#average-ratings-tooltip")
+    if (tooltipElement.empty()) {
+        container.append("div")
+        .attr('id', 'average-ratings-tooltip')
+        .style('position', 'absolute')
+        .style('pointer-events', 'none')
+        .style('z-index', '20')
+        .style('background', 'rgba(255,255,255,0.98)')
+        .style('border', '1px solid rgba(0,0,0,0.12)')
+        .style('border-radius', '12px')
+        .style('box-shadow', '0 10px 22px rgba(0,0,0,0.12)')
+        .style('padding', '10px')
+        .style('max-width', '260px')
+        .style("visibility", "hidden")
+        .style("opacity", 0)
+        .style("font-size", "13px");
+    }
+    
+
+    const titleGraphPadding = 30;
     const normalTextFontSize = 13;
     const pointRadius = 5;
     const pointStrokeWidth  = 1.5;
@@ -68,24 +91,6 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
     }, [movies, size]);
 
     function generateLineChart() {
-        const container = d3.select("#average-ratings-container");
-        const svg = d3.select("#average-ratings-svg");
-
-        container.append("div")
-        .attr('id', 'average-ratings-tooltip')
-        .style('position', 'absolute')
-        .style('pointer-events', 'none')
-        .style('z-index', '20')
-        .style('background', 'rgba(255,255,255,0.98)')
-        .style('border', '1px solid rgba(0,0,0,0.12)')
-        .style('border-radius', '12px')
-        .style('box-shadow', '0 10px 22px rgba(0,0,0,0.12)')
-        .style('padding', '10px')
-        .style('max-width', '260px')
-        .style("visibility", "hidden")
-        .style("opacity", 0)
-        .style("font-size", "13px");
-
         let formattedData: YearlyAverageRating[] = [];
         const years = [... new Set(movies.map((movie) => movie.releaseYear))].sort((a, b) => a - b);
         for (const year of years) {
@@ -96,9 +101,18 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
             };
             formattedData.push(dataPoint);
         }
+
+
+        // Get years for x-axis ticks
+        const minYear: number = d3.min(movies.map((movie) => movie.releaseYear));
+        const maxYear: number = d3.max(movies.map((movie) => movie.releaseYear));
+        let allYears: number[] = [];
+        for (let i = minYear; i < maxYear + 1; i++) {
+            allYears.push(i);
+        }
         
         const xScale = d3.scaleBand()
-        .domain(formattedData.map((dataPoint) => dataPoint.year))
+        .domain(allYears)
         .range([margin.left, size.width - margin.right]);
 
         const xAxis = svg.append("g")
@@ -124,12 +138,12 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
         svg.append("g")
         .attr("transform", `translate(${margin.left / 2}, ${margin.top + ((size.height - margin.top - margin.bottom) / 2)}) rotate(-90)`)
         .append("text")
-        .text("Average Rating")
+        .text("Average IMDB Rating")
         .attr("text-anchor", "middle")
         .style("font-size", `${normalTextFontSize}px`);
 
         const lineGenerator = d3.line()
-        .x((dataPoint) => xScale(dataPoint.year))
+        .x((dataPoint) => xScale(dataPoint.year) + xScale.bandwidth() / 2)
         .y((dataPoint => yScale(dataPoint.averageRating)))
 
         const pathContainer = svg.append("g")
@@ -150,14 +164,16 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
         .enter()
         .append("circle")
         .attr("id", (dataPoint) => `average-rating-${dataPoint.year}`)
-        .attr("cx", (dataPoint) => xScale(dataPoint.year))
+        .attr("cx", (dataPoint) => xScale(dataPoint.year) + xScale.bandwidth() / 2)
         .attr("cy", (dataPoint) => yScale(dataPoint.averageRating))
         .attr("r", pointRadius)
         .attr("stroke", "black")
         .attr("stroke-width", pointStrokeWidth)
         .style("fill", pointFill)
         .on("mouseover", function(event, dataPoint) {
-            d3.select(this).style("cursor", "pointer");
+            d3.select(this)
+            .style("cursor", "pointer");
+
             d3.select(this)
             .transition()
             .duration(300)
@@ -215,6 +231,15 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
             }
             
         })
+
+        // Generate title
+        const title = svg.append('g')
+        .append("text")
+        .attr("transform", `translate(${margin.left + ((size.width - margin.left) / 2)}, ${margin.top - titleGraphPadding})`)
+        .style("text-anchor", "middle")
+        .style("font-size", '20px')
+        .style("font-weight", 900)
+        .text("Average IMDB Rating Over Time"); 
 
     }
 

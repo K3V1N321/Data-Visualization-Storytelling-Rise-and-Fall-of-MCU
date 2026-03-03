@@ -10,6 +10,7 @@ import RevenueBarChart from './components/RevenueBarChart'
 import McuYearDotPlot from './components/McuYearDotPlot'
 import McuRatingsLineChart from './components/McuRatingsLineChart'
 import McuMoviesReviews from './components/McuMoviesReviews'
+import RatingsProfitScatterPlot from "./components/RatingsProfitScatterPlot";
 
 const theme = createTheme({
   palette: {
@@ -23,6 +24,8 @@ function Layout() {
   const CONNECTION_HEIGHT = 400
   const BAR_CHART_HEIGHT = 500
   const DOT_PLOT_HEIGHT = 380
+  const LINE_CHART_HEIGHT = 400
+  const SCATTER_PLOT_HEIGHT = 400
 
   const [selectedReviewsYear, setReviewsYear] = useState<Number | null>(null);  
   return (
@@ -148,7 +151,7 @@ function Layout() {
           </Grid>
         </Grid>
 
-        <Grid container spacing = {1} sx = {{width: "100%", height: BAR_CHART_HEIGHT, flex: "0 0 auto"}}>
+        <Grid container spacing = {1} sx = {{width: "100%", height: LINE_CHART_HEIGHT, flex: "0 0 auto"}}>
           <Grid size = {6} sx = {{height: "100%"}}>
             <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
                 <McuRatingsLineChart selectedReviewsYear = {selectedReviewsYear} setReviewsYear = {setReviewsYear}/>
@@ -158,6 +161,20 @@ function Layout() {
           <Grid size = {6} sx = {{height: "100%"}}>
             <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", flexDirection: "column"}}>
               <McuMoviesReviews selectedReviewsYear = {selectedReviewsYear}/>
+            </Box>
+          </Grid>
+        </Grid>
+
+        <Grid container spacing = {1} sx = {{width: "100%", height: SCATTER_PLOT_HEIGHT, flex: "0 0 auto"}}>
+          <Grid size = {4} sx = {{height: "100%"}}>
+            <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
+              <RatingsProfitScatterPlot timePeriod = "early"/>
+            </Box>
+          </Grid>
+          
+          <Grid size = {4} sx = {{height: "100%"}}>
+            <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", flexDirection: "center"}}>
+              <RatingsProfitScatterPlot timePeriod = "recent"/>
             </Box>
           </Grid>
         </Grid>

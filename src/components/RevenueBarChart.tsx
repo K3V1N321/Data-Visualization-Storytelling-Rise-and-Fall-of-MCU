@@ -25,6 +25,29 @@ export default function RevenueBarChart() {
     const [size, setSize] = useState<ComponentSize>({width: 0, height: 0});
     const onResize = useDebounceCallback((size: ComponentSize) => setSize(size), 200);
     const [movies, setMovies] = useState<Movie[]>([]);
+    const container = d3.select("#revenue-comparison-container");
+    const svg = d3.select("#revenue-comparison-svg");
+
+    // Tooltip for bars
+    const tooltipElement = container.selectChild("#revenue-comparison-tooltip");
+    if (tooltipElement.empty()) {
+        container.append("div")
+        .attr('id', 'revenue-comparison-tooltip')
+        .style('position', 'absolute')
+        .style('pointer-events', 'none')
+        .style('z-index', '20')
+        .style('background', 'rgba(255,255,255,0.98)')
+        .style('border', '1px solid rgba(0,0,0,0.12)')
+        .style('border-radius', '12px')
+        .style('box-shadow', '0 10px 22px rgba(0,0,0,0.12)')
+        .style('padding', '10px')
+        .style('max-width', '260px')
+        .style("visibility", "hidden")
+        .style("opacity", 0)
+        .style("font-size", "13px");
+    }
+    
+
     const titleGraphPadding = 90;
     const legendGraphPadding = 20;
     const normalTextFontSize = 13;
@@ -67,25 +90,6 @@ export default function RevenueBarChart() {
     }, [movies, size]);
 
     function generateBarChart() {
-        const container = d3.select("#revenue-comparison-container");
-        const svg = d3.select("#revenue-comparison-svg");
-
-        // Tooltip for bars
-        container.append("div")
-        .attr('id', 'revenue-comparison-tooltip')
-        .style('position', 'absolute')
-        .style('pointer-events', 'none')
-        .style('z-index', '20')
-        .style('background', 'rgba(255,255,255,0.98)')
-        .style('border', '1px solid rgba(0,0,0,0.12)')
-        .style('border-radius', '12px')
-        .style('box-shadow', '0 10px 22px rgba(0,0,0,0.12)')
-        .style('padding', '10px')
-        .style('max-width', '260px')
-        .style("visibility", "hidden")
-        .style("opacity", 0)
-        .style("font-size", "13px");
-
         // Get the revenue of marvel movies and other movies for each year
         let formattedData: RevenueSplit[] = [];
         const years = [... new Set(movies.map((movie) => movie.releaseYear))].sort((a, b) => a - b);
@@ -157,19 +161,32 @@ export default function RevenueBarChart() {
             .style("top", `${event.pageY - 10}px`)
             .style("opacity", 1)
             .style("visibility", "visible");
+
+            d3.select(this)
+            .selectAll("rect")
+            .transition()
+            .duration(300)
+            .ease(d3.easeCubicInOut)
+            .attr("stroke-width", "5px");
+            
         })
         .on("mousemove", function(event, dataPoint) {
             d3.select("#revenue-comparison-tooltip")
             .style("left", `${event.pageX + 10}px`)
             .style("top", `${event.pageY - 10}px`);
+
         })
         .on("mouseout", function(event, dataPoint) {
             // Hide tootip
             d3.select("#revenue-comparison-tooltip")
             .style("opacity", 0)
             .style("visibility", "hidden")
-            const stackedBars = d3.select(this).selectAll("rect")
-            stackedBars.style("stroke-width", "0px");
+            d3.select(this)
+            .selectAll("rect")
+            .transition()
+            .duration(300)
+            .ease(d3.easeCubicInOut)
+            .attr("stroke-width", "0px");
         });
 
         // Create stacked bars of revenues of marvel and other movies for each year
@@ -200,7 +217,9 @@ export default function RevenueBarChart() {
         .attr("height", (dataPoint) => yScale(dataPoint.y0) - yScale(dataPoint.y1))
         .attr("fill", (dataPoint) => {
             return coloring.filter((colorData) => colorData.type == dataPoint.type)[0].color
-        });
+        })
+        .attr("stroke", "black")
+        .attr("stroke-width", "0px");
 
         // Generate annotation for 2019 bar (gretaest marvel revenue contribution) 
         const data2019 = formattedData.filter((dataPoint) => dataPoint.year == 2019)[0];
