@@ -114,9 +114,7 @@ export default function McuYearDotPlot() {
     }
   }, [])
 
-  // =========================
   // Draw
-  // =========================
   useEffect(() => {
     if (!svgRef.current) return
     if (!containerRef.current) return
@@ -207,7 +205,7 @@ export default function McuYearDotPlot() {
 
     // --- legend (optional but small + useful)
     const MOVIE_FILL = 'rgba(255, 204, 0, 0.95)'
-    const SHOW_FILL = 'rgba(0, 0, 0, 0.65)'
+    const SHOW_FILL = 'rgba(33, 77, 140, 0.85)'
 
     const legend = svg.append('g').attr('transform', `translate(${x0}, ${margin.top})`)
     const legendItems = [

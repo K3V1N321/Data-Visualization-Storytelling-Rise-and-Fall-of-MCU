@@ -11,6 +11,8 @@ import McuYearDotPlot from './components/McuYearDotPlot'
 import McuRatingsLineChart from './components/McuRatingsLineChart'
 import McuMoviesReviews from './components/McuMoviesReviews'
 import RatingsProfitScatterPlot from "./components/RatingsProfitScatterPlot";
+import McuConnectionsPhase46 from './components/McuConnectionsPhase46'
+import McuExplorationDashboard from './components/McuExplorationDashboard'
 
 const theme = createTheme({
   palette: {
@@ -32,13 +34,13 @@ function Layout() {
     <Box
       id="main-container"
       sx={{
-        height: '100vh',
+        minHeight: '100vh',
         width: '100%',
         p: 1,
         overflowY: 'auto'
       }}
     >
-      <Stack spacing={5} sx={{ height: '100%', width: '100%' }}>
+      <Stack spacing={5} sx={{ width: '100%' }}>
         {/* ===== TIMELINE PANEL (TOP) ===== */}
         <Grid
           container
@@ -134,7 +136,8 @@ function Layout() {
               <Box
                 sx={{
                   width: '78vw',
-                  maxWidth: 1200,
+                  maxWidth: 700,
+                  maxHeight: 300,
                   height: '100%',
                   p: 2,
                   border: '1px solid #e0e0e0',
@@ -145,6 +148,43 @@ function Layout() {
               >
                 <Box sx={{ width: '100%', height: '100%', minWidth: 0 }}>
                   <McuYearDotPlot />
+                </Box>
+              </Box>
+            </Box>
+          </Grid>
+        </Grid>
+
+        <Grid
+          container
+          spacing={1}
+          sx={{
+            height: CONNECTION_HEIGHT,
+            flex: '0 0 auto'
+          }}
+        >
+          <Grid item xs={12} sx={{ height: '100%' }}>
+            <Box
+              sx={{
+                height: '100%',
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center'
+              }}
+            >
+              <Box
+                sx={{
+                  width: '95vw',
+                  maxWidth: 1800,
+                  height: '100%',
+                  p: 2,
+                  border: '1px solid #e0e0e0',
+                  borderRadius: 2,
+                  bgcolor: '#fafafa',
+                  display: 'flex'
+                }}
+              >
+                <Box sx={{ width: '100%', height: '100%', minWidth: 0 }}>
+                  <McuConnectionsPhase46 />
                 </Box>
               </Box>
             </Box>
@@ -175,6 +215,42 @@ function Layout() {
           <Grid size = {4} sx = {{height: "100%"}}>
             <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", flexDirection: "center"}}>
               <RatingsProfitScatterPlot timePeriod = "recent"/>
+            </Box>
+          </Grid>
+        </Grid>
+
+        <Grid
+          container
+          spacing={1}
+          sx={{
+            height: 'calc(100vh - 16px)',
+            flex: '0 0 auto'
+          }}
+        >
+          <Grid item xs={12} sx={{ height: '100%' }}>
+            <Box
+              sx={{
+                height: '100%',
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center'
+              }}
+            >
+              <Box
+                sx={{
+                  width: '95vw',
+                  maxWidth: 1800,
+                  height: '100%',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: 2,
+                  bgcolor: '#fafafa',
+                  display: 'flex'
+                }}
+              >
+                <Box sx={{ width: '100%', height: '100%', minWidth: 0 }}>
+                  <McuExplorationDashboard />
+                </Box>
+              </Box>
             </Box>
           </Grid>
         </Grid>
