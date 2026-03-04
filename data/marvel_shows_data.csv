@@ -1,26 +1,26 @@
-title,phase,release_date,imdb_id,imdb_average_rating,imdb_vote_count
-WandaVision,4,2021-01-15,tt9140560,7.9,412492
-The Falcon and The Winter Soldier,4,2021-03-19,tt9208876,7.1,278212
-Loki | Season 1,4,2021-06-09,tt9140554,8.2,466867
-What If...? | Season 1,4,2021-08-11,tt10168312,7.3,159148
-Hawkeye,4,2021-11-24,tt10160804,7.4,241039
-Moon Knight,4,2022-03-30,tt10234724,7.3,307809
-Ms. Marvel,4,2022-06-08,tt10857164,6.2,130493
-I am Groot | Season 1,4,2022-08-10,tt13623148,6.7,45726
-She-Hulk: Attorney at Law,4,2022-08-18,tt10857160,5.2,207436
-Werewolf By Night,4,2022-10-07,tt15318872,7.1,78865
-The Guardians of the Galaxy Holiday Special,4,2022-11-25,tt13623136,6.9,107833
-Secret Invasion,5,2023-06-21,tt13157618,5.8,89313
-I am Groot | Season 2,5,2023-09-06,tt13623148,6.7,45726
-Loki | Season 2,5,2023-10-05,tt9140554,8.2,466867
-What If...? | Season 2,5,2023-12-22,tt10168312,7.3,159148
-Echo,5,2024-01-09,tt13966962,5.9,48363
-X-Men '97 | Season 1,5,2024-03-20,tt16026746,8.7,51501
-Agatha All Along,5,2024-09-18,tt15571732,7.2,87138
-What If...? | Season 3,5,2024-12-22,tt10168312,7.3,159148
-Your Friendly Neighborhood Spider-Man | Season 1,5,2025-01-29,tt16027074,7.5,17973
-Daredevil: Born Again | Season 1,5,2025-03-04,tt18923754,8.0,87934
-Ironheart,5,2025-06-24,tt13623126,4.5,65536
-Eyes of Wakanda,6,2025-08-01,tt13968252,6.2,8999
-Marvel Zombies,6,2025-09-24,tt16027014,7.0,21681
-Wonder Man,6,2026-01-27,tt21066182,7.5,25860
+title,phase,release_date,imdb_id,imdb_average_rating,imdb_vote_count,backdrop_path,poster_path,popularity,vote_average,vote_count
+WandaVision,4,2021-01-15,tt9140560,7.9,412492,/cq62fLH3vwOmiaLKMqkDI86tPtH.jpg,/glKDfE6btIRcVB5zrjspRIs4r52.jpg,17.7925,8.195,12565.0
+The Falcon and The Winter Soldier,4,2021-03-19,tt9208876,7.1,278212,/aTjbqMONy77fHJrIYu14g1F0d5h.jpg,/6kbAMLteGO8yyewYau6bJ683sw7.jpg,10.8235,7.605,8803.0
+Loki | Season 1,4,2021-06-09,tt9140554,8.2,466867,/N1hWzVPpZ8lIQvQskgdQogxdsc.jpg,/oJdVHUYrjdS2IqiNztVIP4GPB1p.jpg,27.5498,8.171,12241.0
+What If...? | Season 1,4,2021-08-11,tt10168312,7.3,159148,/jnzoh5qoxRLFRIQAxnl6D3RStPC.jpg,/lztz5XBMG1x6Y5ubz7CxfPFsAcW.jpg,29.6864,8.066,4554.0
+Hawkeye,4,2021-11-24,tt10160804,7.4,241039,/e3tA49HkybsO90hpL1AZTHR5ZU.jpg,/ct5pNE5dDHryHLDnxyZPYcqO1sz.jpg,19.0629,7.803,3647.0
+Moon Knight,4,2022-03-30,tt10234724,7.3,307809,/1uegR4uAxRxiMyX4nQnpzbXhrTw.jpg,/vKDUmKO6F9bSKKyHhg7YGbgcEeF.jpg,17.693,7.651,3381.0
+Ms. Marvel,4,2022-06-08,tt10857164,6.2,130493,/mfcLUWASJghU8MTNK38eYktfE83.jpg,/3HWWh92kZbD7odwJX7nKmXNZsYo.jpg,9.185,6.292,1407.0
+I am Groot | Season 1,4,2022-08-10,tt13623148,6.7,45726,/bAnHzJ6AMhOhnV3C0kTxkpCqpgM.jpg,/lYwFSsP4KsoRhOLhJvBFp3GEGEm.jpg,7.9911,7.067,456.0
+She-Hulk: Attorney at Law,4,2022-08-18,tt10857160,5.2,207436,/eljErfkQUcFUgQkI4I1soZcH8MW.jpg,/hJfI6AGrmr4uSHRccfJuSsapvOb.jpg,11.4413,6.111,2450.0
+Werewolf By Night,4,2022-10-07,tt15318872,7.1,78865,/pfAZP7JvTTxqgq7n6A1OYgkAdEW.jpg,/mvIvNKRIJPPS7WSFarFhOAGIVnU.jpg,4.4609,6.972,1477.0
+The Guardians of the Galaxy Holiday Special,4,2022-11-25,tt13623136,6.9,107833,/rfnmMYuZ6EKOBvQLp2wqP21v7sI.jpg,/8dqXyslZ2hv49Oiob9UjlGSHSTR.jpg,4.0674,7.098,2300.0
+Secret Invasion,5,2023-06-21,tt13157618,5.8,89313,/6mOK9j99OFlxGc3ird2jWUeUha9.jpg,/f5ZMzzCvt2IzVDxr54gHPv9jlC9.jpg,11.8632,6.519,1340.0
+I am Groot | Season 2,5,2023-09-06,tt13623148,6.7,45726,/bAnHzJ6AMhOhnV3C0kTxkpCqpgM.jpg,/lYwFSsP4KsoRhOLhJvBFp3GEGEm.jpg,7.9911,7.067,456.0
+Loki | Season 2,5,2023-10-05,tt9140554,8.2,466867,/N1hWzVPpZ8lIQvQskgdQogxdsc.jpg,/oJdVHUYrjdS2IqiNztVIP4GPB1p.jpg,27.5498,8.171,12241.0
+What If...? | Season 2,5,2023-12-22,tt10168312,7.3,159148,/jnzoh5qoxRLFRIQAxnl6D3RStPC.jpg,/lztz5XBMG1x6Y5ubz7CxfPFsAcW.jpg,29.6864,8.066,4554.0
+Echo,5,2024-01-09,tt13966962,5.9,48363,/u3ySnWqSjM3jedYgJZTR7RWRDDm.jpg,/vFyJH630cF68LohVYjQW49074Sy.jpg,9.3849,6.1,593.0
+X-Men '97 | Season 1,5,2024-03-20,tt16026746,8.7,51501,/iDnTAeR2WNA62XQG0ivtteDSjd5.jpg,/9Ycz7yYRf9V4jk3YXwcZhFtbNcF.jpg,13.5478,8.5,630.0
+Agatha All Along,5,2024-09-18,tt15571732,7.2,87138,/ymTx7ebsmBjqh47fiZnBUjIDx5K.jpg,/mGsxKwXUjojitRv2E9qMTbxbBRd.jpg,10.3047,7.463,914.0
+What If...? | Season 3,5,2024-12-22,tt10168312,7.3,159148,/jnzoh5qoxRLFRIQAxnl6D3RStPC.jpg,/lztz5XBMG1x6Y5ubz7CxfPFsAcW.jpg,29.6864,8.066,4554.0
+Your Friendly Neighborhood Spider-Man | Season 1,5,2025-01-29,tt16027074,7.5,17973,/kkT2B2gmynoh9kZMo1gromLNeqy.jpg,/kjcsNeqF52YUQ2rUBGLMHwLkxvR.jpg,12.3198,7.749,245.0
+Daredevil: Born Again | Season 1,5,2025-03-04,tt18923754,8.0,87934,/qHCpG49qxs4owLgmhh0T62ErUZv.jpg,/9lLuhV703HGCbnz6FxnqCwIwzAZ.jpg,24.1608,7.954,656.0
+Ironheart,5,2025-06-24,tt13623126,4.5,65536,/kiOEVg5BkzLE0pWoPKecXd7wZ2Q.jpg,/dOh6MJpdlQhYpLBhzhNQeYGKTZ5.jpg,15.0204,5.367,417.0
+Eyes of Wakanda,6,2025-08-01,tt13968252,6.2,8999,/cWO5NDkKqpOuwxu4vFc4PtL8aNF.jpg,/bG23nZW96LxmWkJjsagRZI9hF6t.jpg,8.5474,6.143,154.0
+Marvel Zombies,6,2025-09-24,tt16027014,7.0,21681,/lxQMxqao3vs2ehxESrkQU6acU86.jpg,/mwKj9ERGFXsWot0nXgQ5yMQf9I7.jpg,8.807,7.223,303.0
+Wonder Man,6,2026-01-27,tt21066182,7.5,25860,/ldz9THIHaV4orMsUrPT1nlQF51T.jpg,/6yy9nQlFt2l6UVWzrfhszFCaZ5C.jpg,20.4807,7.145,221.0
