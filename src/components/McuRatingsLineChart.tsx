@@ -21,7 +21,7 @@ type YearlyAverageRating = {
 
 export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear}) {
     const lineRef = useRef<HTMLDivElement> (null);
-    const margin: Margin = { top: 60, right: 40, bottom: 40, left: 40 }
+    const margin: Margin = { top: 60, right: 40, bottom: 40, left: 60 }
     const [size, setSize] = useState<ComponentSize>({width: 0, height: 0});
     const onResize = useDebounceCallback((size: ComponentSize) => setSize(size), 200);
     const [movies, setMovies] = useState<Movie[]>([]);
@@ -127,7 +127,7 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
         .style("font-size", `${normalTextFontSize}px`);
 
         const yScale = d3.scaleLinear()
-        .domain([0, d3.max(formattedData.map((dataPoint) => dataPoint.averageRating))])
+        .domain([6, d3.max(formattedData.map((dataPoint) => dataPoint.averageRating))])
         .range([size.height - margin.bottom, margin.top]);
 
         const yAxis = svg.append("g")
@@ -237,7 +237,7 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
         .append("text")
         .attr("transform", `translate(${margin.left + ((size.width - margin.left) / 2)}, ${margin.top - titleGraphPadding})`)
         .style("text-anchor", "middle")
-        .style("font-size", '20px')
+        .style("font-size", '15px')
         .style("font-weight", 900)
         .text("Average IMDB Rating Over Time"); 
 

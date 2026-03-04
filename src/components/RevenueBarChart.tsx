@@ -51,7 +51,7 @@ export default function RevenueBarChart() {
     const titleGraphPadding = 90;
     const legendGraphPadding = 20;
     const normalTextFontSize = 13;
-    const coloring = [{"type": "Marvel", "color": "#F0131E"}, {"type": "Other", "color": "teal"}]
+    const coloring = [{"type": "Marvel", "color": "#8B0000"}, {"type": "Other", "color": "#808080"}]
 
     useResizeObserver({ ref: barRef as React.RefObject<HTMLDivElement>, onResize });
 
@@ -218,7 +218,7 @@ export default function RevenueBarChart() {
         .attr("fill", (dataPoint) => {
             return coloring.filter((colorData) => colorData.type == dataPoint.type)[0].color
         })
-        .attr("stroke", "black")
+        .attr("stroke", "#FFFF00")
         .attr("stroke-width", "0px");
 
         // Generate annotation for 2019 bar (gretaest marvel revenue contribution) 
@@ -311,7 +311,7 @@ export default function RevenueBarChart() {
         .append("text")
         .attr("transform", `translate(${margin.left + ((size.width - margin.left) / 2)}, ${margin.top})`)
         .style("text-anchor", "middle")
-        .style("font-size", '20px')
+        .style("font-size", '15px')
         .style("font-weight", 900)
         .text("Annual Top 10 Grossing Movies Total Revnue: Marvel's Contribution (2008 - 2025)") 
     }

@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef} from "react";
 import * as d3 from "d3";
+import { useResizeObserver, useDebounceCallback } from "usehooks-ts";
+import { ComponentSize, Margin } from "../types";
 import { filter } from "lodash";
 
 type Movie = {
@@ -23,9 +25,16 @@ type Review = {
 };
 
 export default function McuMoviesReviews({ selectedReviewsYear }) {
+    const reviewsRef = useRef<HTMLDivElement> (null);
+    const margin: Margin = { top: 60, right: 40, bottom: 40, left: 60 };
+    const [size, setSize] = useState<ComponentSize>({width: 0, height: 0});
+    const onResize = useDebounceCallback((size: ComponentSize) => setSize(size), 200);
     const [movies, setMovies] = useState<Movie[]>([]);
     const [reviews, setReviews] = useState<Review[]>([]);
+    const [filteredMovies, setFilteredMoves] = useState<Movie[]>([]);
     const [filteredReviews, setFilteredReviews] = useState<Review[]>([]);
+
+    useResizeObserver({ ref: reviewsRef as React.RefObject<HTMLDivElement>, onResize });
     
     useEffect(() => {
         const loadData = async () => {
@@ -35,6 +44,9 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
             let parsedReviews: Review[] = [];
 
             for (const movie of movieData) {
+                if (movie.title == "The Incredible Hulk") {
+                  continue;
+                }
                 const parsedMovie: Movie = {
                     id: movie.id,
                     title: movie.title,
@@ -68,15 +80,16 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
 
     useEffect(() => {
         if (selectedReviewsYear == null) {
+            setFilteredMoves([]);
             setFilteredReviews([]);
         }
         else {
-            const moviesFromYear = movies.filter((movie) => movie.releaseYear == selectedReviewsYear);
-            const movieTitles = moviesFromYear.map((movie) => movie.title);
+            const moviesFromSelectedYear = movies.filter((movie) => movie.releaseYear == selectedReviewsYear);
+            const movieTitles = moviesFromSelectedYear.map((movie) => movie.title);
 
             let allFilteredReviews: Review[] = []
             for (const title of movieTitles) {
-                let movieFilteredReviews = reviews.filter((review) => review.movie == title);
+                let movieFilteredReviews = reviews.filter((review) => review.movie == title && review.reviewRating != 0);
                 if (movieFilteredReviews.length > 8) {
                     allFilteredReviews = allFilteredReviews.concat(movieFilteredReviews.slice(0, 8));
                 }
@@ -84,53 +97,156 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
                     allFilteredReviews = allFilteredReviews.concat(movieFilteredReviews);
                 }
             }
+            setFilteredMoves(moviesFromSelectedYear);
             setFilteredReviews(allFilteredReviews)
         }
+    }, [selectedReviewsYear])
+
+    useEffect(() => {
+        if (size.width == 0 || size.height == 0) {
+          return;
+        }
+
+        d3.select("#reviews-containter").selectAll("*").remove();
+
+        generateReviews();
+    }, [filteredMovies, filteredReviews, size])
+
+    function generateReviews() {
+        const container = d3.select("#reviews-containter");
+        let title = "MCU Movies IMDB Reviews";
+        if (selectedReviewsYear != null) {
+            title = `${selectedReviewsYear} MCU Movies IMDB Reviews`;
+        }
+        // Add title
+        container.append("div")
+        .attr("id", "reviews-title")
+        .style("text-anchor", "middle")
+        .style("font-size", '15px')
+        .style("font-weight", 900)
+        .text(title);
+
+        // Container for all reviews
+        const reviewsListContainer = container.append("div")
+        .attr("id", "reviews-list-container")
+        .style("width", "100%")
+        .style("flex", 1)
+        .style("overflow-y", "auto")
+        .style("display", "flex")
+        .style("flex-direction", "column")
+        .style("gap", "12px")
+        .style("padding-right", "8px");
+
+        // Create blocks for each movie
+        const movieElements = reviewsListContainer.selectAll("div.movie-item")
+        .data(filteredMovies)
+        .enter()
+        .append("div")
+        .attr("class", "movie-item")
+        .style("width", "100%")
+        .style("box-sizing", "border-box")
+        .style("border", "2px solid black")
+        .style("border-radius", "8px")
+        .style("padding", "12px")
+        .style("backgroundColor", "#fafafa")
+        .style("display", "block")
+        .style("font-size", '13px')
+        .html((dataPoint) => `<strong>${dataPoint.title}</strong>
+        <span style = "margin-left: 20px;">
+        Average Rating: <strong>${dataPoint.imdbAverageRating}/10</strong>
+        </span>`)
+        .on("mouseover", function(event) {
+            d3.select(this)
+            .style("cursor", "pointer");
+        })
+        // Toggle if review titles are shown
+        .on("click", function(event) {
+            const reviewTitlesContainer = d3.select(this).select(".movie-review-titles-container");
+            if (reviewTitlesContainer.style("display") == "none") {
+                reviewTitlesContainer.raise();
+                reviewTitlesContainer.transition()
+                .duration(300)
+                .ease(d3.easeCubicInOut)
+                .style("display", "block");  
+            }
+            else {
+                reviewTitlesContainer.lower();
+                reviewTitlesContainer.style("display", "none"); 
+            }
+        })
         
-    }, [movies, reviews, selectedReviewsYear])
 
+        // Loop through each movie block
+        for (const element of movieElements) {
+            const title = d3.select(element).data()[0]["title"];
+            const movieReviews = filteredReviews.filter((review) => review.movie == title);
 
-  return (
-    <>
-      <h3>
-        {selectedReviewsYear
-          ? `${selectedReviewsYear} MCU Movies IMDB Reviews`
-          : "MCU Movies IMDB Reviews"}
-      </h3>
+            // Container for review title blocks
+            const reviewTitlesContainers = d3.select(element)        
+            .append("div")
+            .attr("class", "movie-review-titles-container")
+            .style("width", "100%")
+            .style("flex", 1)
+            .style("overflow-y", "auto")
+            .style("display", "flex")
+            .style("flex-direction", "column")
+            .style("display", "none")
+            
+            // Create review title block for each review
+            const reviewTitleElements = reviewTitlesContainers.selectAll("div.review-title-item")
+            .data(movieReviews)
+            .enter()
+            .append("div")
+            .attr("class", "review-title-item")
+            .style("width", "100%")
+            .style("box-sizing", "border-box")
+            .style("border", "2px solid black")
+            .style("border-radius", "8px")
+            .style("padding", "12px")
+            .style("margin", "8px")
+            .style("backgroundColor", "#fafafa")
+            .style("display", "block")
+            .style("font-size", "13px")
+            .html((dataPoint) => `<strong>${dataPoint.reviewTitle}</strong><br/>
+            <strong>${dataPoint.reviewRating}/10</strong>
+            <br/>
+            <span>
+            Likes: ${dataPoint.likes}
+            </span>
+            <span style = "margin-left: 20px">
+            Dislikes: ${dataPoint.dislikes}
+            </span>
+            <br/>
+            ${dataPoint.date}`)
+            // Toggle if body of review is shown
+            .on("click", function(event) {
+                event.stopPropagation();
+                const reviewBody = d3.select(this).select(".review-body");
+                if (reviewBody.style("display") == "none") {
+                    reviewBody.style("display", "block");  
+                }
+                else {
+                    reviewBody.style("display", "none"); 
+                }
+            })
+            
+            // Generate Review body for each review
+            for (const reviewElement of reviewTitleElements) {
+                const reviewBody = d3.select(reviewElement).data()[0]["review"];
+                d3.select(reviewElement)
+                .append("div")
+                .attr("class", "review-body")
+                .style("font-size", '13px')
+                .text(reviewBody)
+                .style("display", "none")
+            }
+        }
+    }
 
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: "12px",
-          paddingRight: "8px",
-        }}
-      >
-        {filteredReviews.map((review, index) => (
-          <div
-            key={index}
-            style={{
-              border: "1px solid #e0e0e0",
-              borderRadius: "8px",
-              padding: "12px",
-              backgroundColor: "#fafafa",
-              display: "flex",
-              flexDirection: "column",
-              gap: "6px",
-            }}
-          >
-            <strong>{review.movie}</strong>
-            <div>Title: {review.reviewTitle}</div>
-            <div>Rating: {review.reviewRating}</div>
-            <div>Likes: {review.likes}</div>
-            <div>Dislikes: {review.dislikes}</div>
-            <div>Date: {review.date}</div>
-            <div>{review.review}</div>
+    return (
+      <>
+          <div ref = {reviewsRef} id = "reviews-containter" style = {{width: "100%", height: "100%", display: "flex", flexDirection: "column"}}>
           </div>
-        ))}
-      </div>
-    </>
-  );
+      </>
+  )
 }

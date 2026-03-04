@@ -15,7 +15,7 @@ type Movie = {
 
 export default function RatingsProfitScatterPlot({timePeriod}) {
     const scatterRef = useRef<HTMLDivElement>(null)
-    const margin: Margin = { top: 60, right: 40, bottom: 40, left: 80 }
+    const margin: Margin = { top: 60, right: 40, bottom: 50, left: 60 }
     const [size, setSize] = useState<ComponentSize>({width: 0, height: 0});
     const onResize = useDebounceCallback((size: ComponentSize) => setSize(size), 200);
     const [movies, setMovies] = useState<Movie[]>([]);
@@ -187,7 +187,7 @@ export default function RatingsProfitScatterPlot({timePeriod}) {
         .append("text")
         .attr("transform", `translate(${margin.left + ((size.width - margin.left) / 2)}, ${margin.top - titleGraphPadding})`)
         .style("text-anchor", "middle")
-        .style("font-size", '20px')
+        .style("font-size", '15px')
         .style("font-weight", 900)
         .text(plotTitle); 
     }
