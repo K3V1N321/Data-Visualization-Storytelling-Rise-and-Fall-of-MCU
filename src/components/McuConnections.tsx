@@ -79,6 +79,7 @@ const CONNECTIONS: Connection[] = [
   { type: 'crossover', from: 'Captain Marvel', to: 'Avengers: Endgame', side: 'bottom' },
   { type: 'carryover', from: 'Avengers: Endgame', to: 'Spider-Man: Far From Home', side: 'top' },
   { type: 'sequel', from: 'Spider-Man: Far From Home', to: 'Spider-Man: No Way Home', side: 'bottom' },
+  { type: 'carryover', from: 'Black Widow', to: 'Thunderbolts*', side: 'top' },
 ]
 
 function parsePhase(raw: string): Phase | null {

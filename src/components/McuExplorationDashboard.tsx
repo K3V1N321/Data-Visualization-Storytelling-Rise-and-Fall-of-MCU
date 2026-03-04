@@ -13,6 +13,7 @@ type MovieRow = {
   phase: string
   release_date: string
   revenue: string
+  budget: string
   poster_path: string
   imdb_id: string
   imdb_average_rating: string
@@ -25,6 +26,7 @@ type ShowRow = {
   release_date: string
   imdb_id: string
   imdb_average_rating: string
+  poster_path: string
 }
 
 type ReviewRow = {
@@ -49,6 +51,8 @@ type Entry = {
   imdbId: string
   rating: number | null
   revenue: number | null
+  budget: number | null
+  profit: number | null
   posterUrl: string | null
   overview: string
   important: boolean
@@ -64,6 +68,25 @@ type Review = {
   body: string
   likes: number
   dislikes: number
+}
+
+function reviewKey(review: Review) {
+  return [review.author, review.date, review.title, review.body].join('||')
+}
+
+function reviewEngagement(review: Review) {
+  return review.likes + review.dislikes
+}
+
+function normalizeTitle(raw: string) {
+  return String(raw ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+}
+
+function baseShowTitle(raw: string) {
+  return String(raw ?? '').split('|')[0].trim()
 }
 
 type YearMetric = {
@@ -116,7 +139,14 @@ function parseDate(raw: string) {
 }
 
 function parseNumber(raw: string) {
-  const n = Number(String(raw ?? '').replace(/,/g, '').trim())
+  const cleaned = String(raw ?? '').replace(/,/g, '').trim()
+  if (!cleaned) return null
+  const match = cleaned.match(/^(-?\d+(?:\.\d+)?)\s*([kK])?$/)
+  if (!match) return null
+  const base = Number(match[1])
+  if (!Number.isFinite(base)) return null
+  const multiplier = match[2] ? 1_000 : 1
+  const n = base * multiplier
   return Number.isFinite(n) ? n : null
 }
 
@@ -163,13 +193,17 @@ function pointPosition(
   year: number,
   value: number,
   years: [number, number],
+  minValue: number,
   maxValue: number,
   width: number,
   height: number
 ) {
   const padding = { top: 18, right: 16, bottom: 28, left: 36 }
   const x = d3.scaleLinear().domain(years).range([padding.left, width - padding.right])
-  const y = d3.scaleLinear().domain([0, maxValue || 1]).range([height - padding.bottom, padding.top])
+  const y = d3
+    .scaleLinear()
+    .domain([minValue, maxValue || 1])
+    .range([height - padding.bottom, padding.top])
   return { x: x(year), y: y(value) }
 }
 
@@ -178,23 +212,39 @@ function MetricChart({
   data,
   selectedYear,
   formatter,
-  stroke
+  stroke,
+  yDomainMode = 'zero-based'
 }: {
   title: string
   data: YearMetric[]
   selectedYear: number
   formatter: (value: number | null) => string
   stroke: string
+  yDomainMode?: 'zero-based' | 'tight'
 }) {
   const width = 360
   const height = 145
-  const maxValue = d3.max(data, d => d.value ?? 0) ?? 1
+  const finiteValues = data.map(d => d.value).filter((v): v is number => v !== null)
+  const minDataValue = finiteValues.length > 0 ? d3.min(finiteValues) ?? 0 : 0
+  const maxDataValue = finiteValues.length > 0 ? d3.max(finiteValues) ?? 1 : 1
+  let minValue = 0
+  let domainMax = 1
+  if (yDomainMode === 'tight') {
+    const span = Math.max(0.2, maxDataValue - minDataValue)
+    const pad = Math.max(0.12, span * 0.25)
+    minValue = clamp(minDataValue - pad, 0, 10)
+    domainMax = clamp(maxDataValue + pad, 0, 10)
+    if (domainMax <= minValue) domainMax = Math.min(10, minValue + 1)
+  } else {
+    minValue = Math.min(0, minDataValue)
+    domainMax = Math.max(maxDataValue, minValue + 1)
+  }
   const selectedPoint = data.find(d => d.year === selectedYear && d.value !== null)
   const years: [number, number] = [data[0]?.year ?? selectedYear, data[data.length - 1]?.year ?? selectedYear]
   const activePoints = data.filter((d): d is { year: number; value: number } => d.value !== null && d.year <= selectedYear)
   const selectedPosition =
     selectedPoint && selectedPoint.value !== null
-      ? pointPosition(selectedPoint.year, selectedPoint.value, years, maxValue, width, height)
+      ? pointPosition(selectedPoint.year, selectedPoint.value, years, minValue, domainMax, width, height)
       : null
 
   return (
@@ -220,8 +270,8 @@ function MetricChart({
         <line x1="36" x2="36" y1="18" y2="162" stroke="rgba(0,0,0,0.18)" />
         {activePoints.slice(1).map((point, index) => {
           const prev = activePoints[index]
-          const p1 = pointPosition(prev.year, prev.value, years, maxValue, width, height)
-          const p2 = pointPosition(point.year, point.value, years, maxValue, width, height)
+          const p1 = pointPosition(prev.year, prev.value, years, minValue, domainMax, width, height)
+          const p2 = pointPosition(point.year, point.value, years, minValue, domainMax, width, height)
           return (
             <line
               key={`${prev.year}-${point.year}`}
@@ -238,7 +288,7 @@ function MetricChart({
         {data
           .filter((d): d is { year: number; value: number } => d.value !== null)
           .map(point => {
-            const pos = pointPosition(point.year, point.value, years, maxValue, width, height)
+            const pos = pointPosition(point.year, point.value, years, minValue, domainMax, width, height)
             const active = point.year <= selectedYear
             return (
               <circle
@@ -282,17 +332,20 @@ export default function McuExplorationDashboard() {
   const TIMELINE_THUMB_SIZE = 16
   const [entries, setEntries] = useState<Entry[]>([])
   const [reviewsByImdbId, setReviewsByImdbId] = useState<Map<string, Review[]>>(new Map())
+  const [reviewsByTitle, setReviewsByTitle] = useState<Map<string, Review[]>>(new Map())
   const [selectedYear, setSelectedYear] = useState<number | null>(null)
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null)
+  const [expandedReviewKey, setExpandedReviewKey] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
 
     async function load() {
-      const [movieRows, showRows, reviewRows] = await Promise.all([
+      const [movieRows, showRows, movieReviewRows, showReviewRows] = await Promise.all([
         d3.csv('/data/marvel_movies_tmdb.csv') as unknown as Promise<MovieRow[]>,
         d3.csv('/data/marvel_shows_data.csv') as unknown as Promise<ShowRow[]>,
-        d3.csv('/data/marvel_movies_imdb_reviews.csv') as unknown as Promise<ReviewRow[]>
+        d3.csv('/data/marvel_movies_imdb_reviews.csv') as unknown as Promise<ReviewRow[]>,
+        (d3.csv('/data/marvel_shows_imdb_reviews.csv').catch(() => []) as unknown as Promise<ReviewRow[]>)
       ])
 
       const movies = movieRows
@@ -306,6 +359,8 @@ export default function McuExplorationDashboard() {
 
           const meta = IMPORTANT[title]
           const posterPath = String(row.poster_path ?? '').trim()
+          const revenue = parseNumber(row.revenue)
+          const budget = parseNumber(row.budget)
           return {
             id: `movie-${row.id}`,
             title,
@@ -315,7 +370,9 @@ export default function McuExplorationDashboard() {
             year: releaseDate.getFullYear(),
             imdbId: String(row.imdb_id ?? '').trim(),
             rating: parseNumber(row.imdb_average_rating),
-            revenue: parseNumber(row.revenue),
+            revenue,
+            budget,
+            profit: revenue !== null && budget !== null ? revenue - budget : null,
             posterUrl: posterPath ? `${TMDB_POSTER_BASE}${posterPath}` : null,
             overview: String(row.overview ?? '').trim(),
             important: !!meta,
@@ -334,6 +391,7 @@ export default function McuExplorationDashboard() {
           const title = String(row.title ?? '').trim()
           if (!title) return null
 
+          const posterPath = String(row.poster_path ?? '').trim()
           return {
             id: `show-${row.imdb_id || index}`,
             title,
@@ -344,7 +402,9 @@ export default function McuExplorationDashboard() {
             imdbId: String(row.imdb_id ?? '').trim(),
             rating: parseNumber(row.imdb_average_rating),
             revenue: null,
-            posterUrl: null,
+            budget: null,
+            profit: null,
+            posterUrl: posterPath ? `${TMDB_POSTER_BASE}${posterPath}` : null,
             overview: '',
             important: false
           }
@@ -352,42 +412,67 @@ export default function McuExplorationDashboard() {
         .filter((entry): entry is Entry => entry !== null)
 
       const allEntries = [...movies, ...shows].sort((a, b) => a.releaseDate.getTime() - b.releaseDate.getTime())
-      const reviews = d3.group(
-        reviewRows
-          .map((row): [string, Review] | null => {
-            const imdbId = String(row.imdb_id ?? '').trim()
-            if (!imdbId) return null
-            return [
-              imdbId,
-              {
-                author: String(row.author ?? 'Anonymous').trim() || 'Anonymous',
-                date: String(row.date ?? '').trim(),
-                rating: parseNumber(row.review_rating),
-                title: String(row.review_title ?? '').trim(),
-                body: String(row.review ?? '').trim(),
-                likes: parseNumber(row.likes) ?? 0,
-                dislikes: parseNumber(row.dislikes) ?? 0
-              }
-            ]
-          })
-          .filter((entry): entry is [string, Review] => entry !== null),
-        d => d[0]
-      )
+      const allReviewRows = [...movieReviewRows, ...showReviewRows]
+      const dedupe = new Set<string>()
+      const parsedReviews = allReviewRows
+        .map(row => {
+          const review: Review = {
+            author: String(row.author ?? 'Anonymous').trim() || 'Anonymous',
+            date: String(row.date ?? '').trim(),
+            rating: parseNumber(row.review_rating),
+            title: String(row.review_title ?? '').trim(),
+            body: String(row.review ?? '').trim(),
+            likes: parseNumber(row.likes) ?? 0,
+            dislikes: parseNumber(row.dislikes) ?? 0
+          }
+          const imdbId = String(row.imdb_id ?? '').trim()
+          const titleKey = normalizeTitle(baseShowTitle(String(row.title ?? '')))
+          const fingerprint = [
+            imdbId,
+            titleKey,
+            review.author,
+            review.date,
+            review.title,
+            review.body
+          ].join('||')
 
-      const normalizedReviews = new Map<string, Review[]>()
-      reviews.forEach((items, imdbId) => {
-        normalizedReviews.set(
+          if (dedupe.has(fingerprint)) return null
+          dedupe.add(fingerprint)
+
+          return { imdbId, titleKey, review }
+        })
+        .filter((entry): entry is { imdbId: string; titleKey: string; review: Review } => entry !== null)
+
+      const normalizedReviewsByImdbId = new Map<string, Review[]>()
+      d3.group(
+        parsedReviews.filter(entry => !!entry.imdbId),
+        entry => entry.imdbId
+      ).forEach((items, imdbId) => {
+        normalizedReviewsByImdbId.set(
           imdbId,
           items
-            .map(item => item[1])
-            .sort((a, b) => b.likes - a.likes)
-            .slice(0, 3)
+            .map(item => item.review)
+            .sort((a, b) => reviewEngagement(b) - reviewEngagement(a))
+        )
+      })
+
+      const normalizedReviewsByTitle = new Map<string, Review[]>()
+      d3.group(
+        parsedReviews.filter(entry => !!entry.titleKey),
+        entry => entry.titleKey
+      ).forEach((items, titleKey) => {
+        normalizedReviewsByTitle.set(
+          titleKey,
+          items
+            .map(item => item.review)
+            .sort((a, b) => reviewEngagement(b) - reviewEngagement(a))
         )
       })
 
       if (!cancelled) {
         setEntries(allEntries)
-        setReviewsByImdbId(normalizedReviews)
+        setReviewsByImdbId(normalizedReviewsByImdbId)
+        setReviewsByTitle(normalizedReviewsByTitle)
         if (allEntries.length > 0) {
           setSelectedYear(allEntries[0].year)
           setSelectedEntryId(allEntries[0].id)
@@ -400,6 +485,7 @@ export default function McuExplorationDashboard() {
       if (!cancelled) {
         setEntries([])
         setReviewsByImdbId(new Map())
+        setReviewsByTitle(new Map())
       }
     })
 
@@ -427,8 +513,31 @@ export default function McuExplorationDashboard() {
     }
   }, [yearEntries, selectedEntryId])
 
+  useEffect(() => {
+    setExpandedReviewKey(null)
+  }, [selectedEntryId, currentYear])
+
   const selectedEntry = yearEntries.find(entry => entry.id === selectedEntryId) ?? yearEntries[0] ?? null
-  const selectedReviews = selectedEntry?.imdbId ? reviewsByImdbId.get(selectedEntry.imdbId) ?? [] : []
+  const selectedReviews = useMemo(() => {
+    if (!selectedEntry) return []
+
+    const baseTitle = selectedEntry.mediaType === 'show' ? baseShowTitle(selectedEntry.title) : selectedEntry.title
+    const titleKey = normalizeTitle(baseTitle)
+    const imdbReviews = selectedEntry.imdbId ? reviewsByImdbId.get(selectedEntry.imdbId) ?? [] : []
+    const titleReviews = reviewsByTitle.get(titleKey) ?? []
+
+    const merged = [...imdbReviews, ...titleReviews]
+    const dedupe = new Set<string>()
+    return merged
+      .filter(review => {
+        const fingerprint = reviewKey(review)
+        if (dedupe.has(fingerprint)) return false
+        dedupe.add(fingerprint)
+        return true
+      })
+      .sort((a, b) => reviewEngagement(b) - reviewEngagement(a))
+      .slice(0, 4)
+  }, [selectedEntry, reviewsByImdbId, reviewsByTitle])
 
   const moviesOnly = useMemo(
     () => entries.filter(entry => entry.mediaType === 'movie'),
@@ -447,13 +556,13 @@ export default function McuExplorationDashboard() {
     return out
   }, [moviesOnly, minYear, maxYear])
 
-  const revenueData = useMemo(() => {
+  const profitData = useMemo(() => {
     const out: YearMetric[] = []
     for (let year = minYear; year <= maxYear; year++) {
-      const yearMovies = moviesOnly.filter(movie => movie.year === year && movie.revenue !== null)
+      const yearMovies = moviesOnly.filter(movie => movie.year === year && movie.profit !== null)
       out.push({
         year,
-        value: yearMovies.length > 0 ? d3.mean(yearMovies, movie => movie.revenue ?? 0) ?? null : null
+        value: yearMovies.length > 0 ? d3.mean(yearMovies, movie => movie.profit ?? 0) ?? null : null
       })
     }
     return out
@@ -542,7 +651,7 @@ export default function McuExplorationDashboard() {
         <div>
           <div style={{ fontSize: 20, fontWeight: 900 }}>MCU Exploration Dashboard</div>
           <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.65)', maxWidth: 760, lineHeight: 1.3 }}>
-            Scrub through the MCU timeline, inspect year-by-year rating and revenue trends, and open any movie or show released in the selected year.
+            Scrub through the MCU timeline, inspect year-by-year rating and profit trends, and open any movie or show released in the selected year.
           </div>
         </div>
       </div>
@@ -784,15 +893,16 @@ export default function McuExplorationDashboard() {
 
           <div style={{ display: 'grid', gridTemplateRows: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12, minHeight: 0 }}>
             <MetricChart
-              title="Average IMDb Rating"
+              title="Average IMDb Rating for Movie over Years"
               data={ratingData}
               selectedYear={currentYear}
               formatter={formatRating}
               stroke="#111"
+              yDomainMode="tight"
             />
             <MetricChart
-              title="Average Revenue Per Movie"
-              data={revenueData}
+              title="Average Movie Profit over Years"
+              data={profitData}
               selectedYear={currentYear}
               formatter={formatRevenue}
               stroke="#d62828"
@@ -933,7 +1043,8 @@ export default function McuExplorationDashboard() {
                       </div>
                       <div style={{ fontSize: 13 }}><strong>Release date:</strong> {selectedEntry.releaseDate.toLocaleDateString()}</div>
                       <div style={{ fontSize: 13 }}><strong>IMDb rating:</strong> {formatRating(selectedEntry.rating)}</div>
-                      <div style={{ fontSize: 13 }}><strong>Profit / revenue:</strong> {selectedEntry.mediaType === 'movie' ? formatRevenue(selectedEntry.revenue) : 'N/A'}</div>
+                      <div style={{ fontSize: 13 }}><strong>Revenue:</strong> {selectedEntry.mediaType === 'movie' ? formatRevenue(selectedEntry.revenue) : 'N/A'}</div>
+                      <div style={{ fontSize: 13 }}><strong>Profit:</strong> {selectedEntry.mediaType === 'movie' ? formatRevenue(selectedEntry.profit) : 'N/A'}</div>
                     </div>
                   </div>
 
@@ -961,35 +1072,84 @@ export default function McuExplorationDashboard() {
                 minHeight: 0
               }}
             >
-              <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 12 }}>Top User Reviews</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
+                <div style={{ fontSize: 17, fontWeight: 800 }}>Top User Reviews</div>
+                <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.55)' }}>Click a card to expand/collapse</div>
+              </div>
               {selectedEntry ? (
                 selectedReviews.length > 0 ? (
-                  <div style={{ display: 'grid', gap: 10, overflowY: 'auto', paddingRight: 4 }}>
-                    {selectedReviews.map((review, index) => (
-                      <div
-                        key={`${review.author}-${index}`}
+                  <div style={{ display: 'grid', gap: 10, overflowY: 'auto', overflowX: 'hidden', paddingRight: 4 }}>
+                    {selectedReviews.map((review, index) => {
+                      const key = reviewKey(review)
+                      const expanded = expandedReviewKey === key
+                      return (
+                      <button
+                        type="button"
+                        onClick={() => setExpandedReviewKey(expanded ? null : key)}
+                        key={`${key}-${index}`}
                         style={{
+                          cursor: 'pointer',
                           border: '1px solid rgba(0,0,0,0.1)',
                           borderRadius: 12,
                           padding: 10,
-                          background: '#fafafa'
+                          background: expanded ? '#f3f3f3' : '#fafafa',
+                          textAlign: 'left',
+                          display: 'block',
+                          width: '100%',
+                          maxWidth: '100%',
+                          boxSizing: 'border-box',
+                          overflowX: 'hidden',
+                          minHeight: expanded ? 260 : 170
                         }}
                       >
-                        <div style={{ fontSize: 13, fontWeight: 800 }}>{review.title || 'Untitled review'}</div>
-                        <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.55)', margin: '4px 0 6px' }}>
-                          {review.author} • {review.date || 'Unknown date'} • Rating {formatRating(review.rating)}
+                        <div style={{ fontSize: 13, fontWeight: 800, overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{review.title || 'Untitled review'}</div>
+                        <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.55)', margin: '4px 0 6px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                          <span>{review.author}</span>
+                          <span>•</span>
+                          <span>{review.date || 'Unknown date'}</span>
+                          <span>•</span>
+                          <span>Rating {formatRating(review.rating)}</span>
+                          <span>•</span>
+                          <span>Likes {review.likes}</span>
+                          <span>•</span>
+                          <span>Dislikes {review.dislikes}</span>
                         </div>
                         <div style={{ fontSize: 12, lineHeight: 1.4, color: 'rgba(0,0,0,0.76)' }}>
-                          {review.body.length > 280 ? `${review.body.slice(0, 280)}...` : review.body}
+                          {expanded ? (
+                            <div
+                              style={{
+                                whiteSpace: 'pre-wrap',
+                                overflowWrap: 'anywhere',
+                                wordBreak: 'break-word',
+                                maxHeight: 150,
+                                overflowY: 'auto',
+                                paddingRight: 2
+                              }}
+                            >
+                              {review.body || 'No review text available.'}
+                            </div>
+                          ) : (
+                            <span
+                              style={{
+                                display: '-webkit-box',
+                                maxWidth: '100%',
+                                whiteSpace: 'normal',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                WebkitLineClamp: 4,
+                                WebkitBoxOrient: 'vertical'
+                              }}
+                            >
+                              {review.body || 'No review text available.'}
+                            </span>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      </button>
+                    )})}
                   </div>
                 ) : (
                   <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.6)' }}>
-                    {selectedEntry?.mediaType === 'show'
-                      ? 'No TV show review dataset is loaded for this dashboard.'
-                      : 'No review data is available for this title.'}
+                    No review data is available for this title.
                   </div>
                 )
               ) : (

@@ -69,7 +69,9 @@ const CONNECTIONS: Connection[] = [
   { type: 'sequel', from: 'I am Groot | Season 1', to: 'I am Groot | Season 2', side: 'top' },
   { type: 'sequel', from: 'What If...? | Season 1', to: 'What If...? | Season 2', side: 'top' },
   { type: 'sequel', from: 'What If...? | Season 2', to: 'What If...? | Season 3', side: 'bottom' },
-  { type: 'crossover', from: 'Hawkeye', to: 'Thunderbolts*', side: 'bottom' }
+  { type: 'crossover', from: 'Hawkeye', to: 'Thunderbolts*', side: 'bottom' },
+  { type: 'carryover', from: 'Black Widow', to: 'Thunderbolts*', side: 'top' },
+  { type: 'carryover', from: 'Loki | Season 1', to: 'Ant-Man and the Wasp: Quantumania', side: 'top' }
 ]
 
 function parsePhase(raw: string): Phase | null {
