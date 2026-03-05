@@ -24,7 +24,7 @@ const theme = createTheme({
 function Layout() {
   const TIMELINE_HEIGHT = 500
   const CONNECTION_HEIGHT = 400
-  const BAR_CHART_HEIGHT = 500
+  const BAR_CHART_HEIGHT = 400
   const DOT_PLOT_HEIGHT = 380
   const LINE_CHART_HEIGHT = 400
   const SCATTER_PLOT_HEIGHT = 400
@@ -82,6 +82,8 @@ function Layout() {
           </Grid>
         </Grid>
 
+        <h1>Rise of MCU</h1>
+
        {/* ===== CONNECTIONS PANEL ===== */}
         <Grid
           container
@@ -119,12 +121,24 @@ function Layout() {
             </Box>
           </Grid>
         </Grid>
+        <p>
+        During the early years of the MCU, one of the main aspects of these movies that the audience liked is the connected
+        storyline that Marvel set up between their movies. This was a very liked aspect of Marvel movies, because it helped
+        fascilitate the idea that Marvel was creating a shared universe between their movies. Audience meembers really enjoyed
+        this aspect of Marvel movies, because typical movies are usually in their own reality, where outside of direct sequels
+        the events in the movies do not influence or lead to another story.
+        There is the typical connection of direct movie sequels, like the
+        series of Iron Man movies, but outside of that Marvel also created their movies such that the events of in one movie series
+        influence lead into the events of a future movie in a different series. Related to this, a popular way Marvel connects
+        their movies is by creating crossover movies, where main characters from their different movie series appear in the
+        same movie. This is the main type of movies
+        </p>
 
         {/* ===== BOTTOM PANEL (FUTURE VIEWS) ===== */}
         <Grid container spacing = {1} sx = {{width: "50%", height: BAR_CHART_HEIGHT, flex: "0 0 auto"}}>
           <Grid sx = {{width: "100%", height: "100%"}}>
             <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
-              <RevenueBarChart/>
+              <RevenueBarChart timePeriod = "early"/>
             </Box>
           </Grid>
         </Grid>
@@ -187,6 +201,14 @@ function Layout() {
                   <McuConnectionsPhase46 />
                 </Box>
               </Box>
+            </Box>
+          </Grid>
+        </Grid>
+
+        <Grid container spacing = {1} sx = {{width: "50%", height: BAR_CHART_HEIGHT, flex: "0 0 auto"}}>
+          <Grid sx = {{width: "100%", height: "100%"}}>
+            <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
+              <RevenueBarChart timePeriod = "recent"/>
             </Box>
           </Grid>
         </Grid>
