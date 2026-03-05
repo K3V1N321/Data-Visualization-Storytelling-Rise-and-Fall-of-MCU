@@ -19,14 +19,16 @@ type RevenueSplit = {
     otherMoviesRevenue: number
 };
 
-export default function RevenueBarChart() {
+export default function RevenueBarChart({timePeriod}) {
     const barRef = useRef<HTMLDivElement> (null);
     const margin: Margin = { top: 36, right: 100, bottom: 40, left: 40 }
     const [size, setSize] = useState<ComponentSize>({width: 0, height: 0});
     const onResize = useDebounceCallback((size: ComponentSize) => setSize(size), 200);
     const [movies, setMovies] = useState<Movie[]>([]);
-    const container = d3.select("#revenue-comparison-container");
-    const svg = d3.select("#revenue-comparison-svg");
+    const containerId = `${timePeriod}-revenue-comparison-container`;
+    const svgId = `${timePeriod}-revenue-comparison-svg`;
+    const container = d3.select(`#${containerId}`);
+    const svg = d3.select(`#${svgId}`);
 
     // Tooltip for bars
     const tooltipElement = container.selectChild("#revenue-comparison-tooltip");
@@ -51,7 +53,7 @@ export default function RevenueBarChart() {
     const titleGraphPadding = 90;
     const legendGraphPadding = 20;
     const normalTextFontSize = 13;
-    const coloring = [{"type": "Marvel", "color": "#8B0000"}, {"type": "Other", "color": "#808080"}]
+    const coloring = [{"type": "Marvel", "color": "#8B0000"}, {"type": "Other", "color": "#2F4F4F"}]
 
     useResizeObserver({ ref: barRef as React.RefObject<HTMLDivElement>, onResize });
 
@@ -84,7 +86,7 @@ export default function RevenueBarChart() {
             return;
         }
         
-        d3.select("#revenue-comparison-svg").selectAll("*").remove();
+        svg.selectAll("*").remove();
 
         generateBarChart();
     }, [movies, size]);
@@ -92,7 +94,15 @@ export default function RevenueBarChart() {
     function generateBarChart() {
         // Get the revenue of marvel movies and other movies for each year
         let formattedData: RevenueSplit[] = [];
-        const years = [... new Set(movies.map((movie) => movie.releaseYear))].sort((a, b) => a - b);
+        let years = [... new Set(movies.map((movie) => movie.releaseYear))].sort((a, b) => a - b);
+
+        if (timePeriod == "early") {
+            years = years.filter((year) => year <= 2019);
+        }
+        else if (timePeriod == "recent") {
+            years = years.filter((year) => year > 2019);
+        }
+  
         for (const year of years) {
             const yearMovies = movies.filter((movie) => movie.releaseYear == year);
             const revenueInfo: RevenueSplit = {
@@ -137,7 +147,7 @@ export default function RevenueBarChart() {
         .style("font-size", `${normalTextFontSize}px`);
 
         const barsGroup = svg.append("g")
-        .attr("id", "revenue-bars");
+        .attr("id", `${timePeriod}-revenue-bars`);
 
         // Create a group for each year's bar
         const yearGroups = barsGroup.selectAll(".year-group")
@@ -221,60 +231,63 @@ export default function RevenueBarChart() {
         .attr("stroke", "#FFFF00")
         .attr("stroke-width", "0px");
 
-        // Generate annotation for 2019 bar (gretaest marvel revenue contribution) 
-        const data2019 = formattedData.filter((dataPoint) => dataPoint.year == 2019)[0];
-        const x = xScale(data2019.year) + xScale.bandwidth();
-        const barYTop = yScale(data2019.marvelRevenue + data2019.otherMoviesRevenue);
-        const xDistanceFromBar = 30
-        const yDistanceFromBar = 50
-        const lineHeight = 1.2 * normalTextFontSize;
-        const textBottomY = barYTop - yDistanceFromBar + lineHeight;
+        if (timePeriod == "early") {
+            // Generate annotation for 2019 bar (gretaest marvel revenue contribution) 
+            const data2019 = formattedData.filter((dataPoint) => dataPoint.year == 2019)[0];
+            const x = xScale(data2019.year) + xScale.bandwidth();
+            const barYTop = yScale(data2019.marvelRevenue + data2019.otherMoviesRevenue);
+            const xDistanceFromBar = 30
+            const yDistanceFromBar = 50
+            const lineHeight = 1.2 * normalTextFontSize;
+            const textBottomY = barYTop - yDistanceFromBar + lineHeight;
 
 
-        const defs = svg.append("defs")
-        // Define arrowhead
-        defs.append("marker")
-        .attr("id", "arrowhead")
-        .attr("viewBox", "0 0 10 10")
-        .attr("refX", 5)
-        .attr("refY", 5)
-        .attr("markerWidth", 5)
-        .attr("markerHeight", 5)
-        .attr("orient", "auto")
-        .append("path")
-        .attr("d", "M 0 0 L 10 5 L 0 10 Z")
-        .attr("fill", "black");
-        const annotationGroup = svg.append("g").attr("id", "max-contribution-annotation")
+            const defs = svg.append("defs")
+            // Define arrowhead
+            defs.append("marker")
+            .attr("id", "arrowhead")
+            .attr("viewBox", "0 0 10 10")
+            .attr("refX", 5)
+            .attr("refY", 5)
+            .attr("markerWidth", 5)
+            .attr("markerHeight", 5)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M 0 0 L 10 5 L 0 10 Z")
+            .attr("fill", "black");
+            const annotationGroup = svg.append("g").attr("id", "max-contribution-annotation")
 
-        // Generate annotation text
-        annotationGroup.append("text")
-        .attr("x", x + xDistanceFromBar)
-        .attr("y", barYTop - yDistanceFromBar)
-        .attr("text-anchor", "middle")
-        .style("font-size", `${normalTextFontSize}px`)
-        .append("tspan")
-        .attr("x", x + xDistanceFromBar)
-        .attr("dy", "0")
-        .text("Max Marvel")
-        .append("tspan")
-        .attr("x", x + xDistanceFromBar)
-        .attr("dy", "1.2em")
-        .text("Contribution")
+            // Generate annotation text
+            annotationGroup.append("text")
+            .attr("x", x + xDistanceFromBar)
+            .attr("y", barYTop - yDistanceFromBar)
+            .attr("text-anchor", "middle")
+            .style("font-size", `${normalTextFontSize}px`)
+            .append("tspan")
+            .attr("x", x + xDistanceFromBar)
+            .attr("dy", "0")
+            .text("Max Marvel")
+            .append("tspan")
+            .attr("x", x + xDistanceFromBar)
+            .attr("dy", "1.2em")
+            .text("Contribution")
 
-        // Generate line from annotation text to 2019 bar
-        annotationGroup.append("line")
-        .attr("x1", x + xDistanceFromBar)
-        .attr("y1", textBottomY + 5)
-        .attr("x2", x)
-        .attr("y2", barYTop)
-        .attr("stroke", "black")
-        .attr("stroke-width", 1)
-        .attr("marker-end", "url(#arrowhead)");
+            // Generate line from annotation text to 2019 bar
+            annotationGroup.append("line")
+            .attr("x1", x + xDistanceFromBar)
+            .attr("y1", textBottomY + 5)
+            .attr("x2", x)
+            .attr("y2", barYTop)
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+            .attr("marker-end", "url(#arrowhead)");
+        }
+        
 
 
         // Generate legend
         const legendContainer = svg.append("g")
-        .attr("id", "revenue-comparisonlegend")
+        .attr("id", `${timePeriod}-revenue-comparison-legend`)
         .attr("transform", `translate(${size.width - margin.right + legendGraphPadding}, ${margin.top + titleGraphPadding})`)
 
         // Generate legend title
@@ -305,7 +318,13 @@ export default function RevenueBarChart() {
         .text((dataPoint) => dataPoint.type)
         
 
-
+        let titleText = "Annual Top 10 Grossing Movies Total Revnue: Marvel's Contribution";
+        if (timePeriod == "early") {
+            titleText = titleText.concat(" (2008 - 2019)");
+        }
+        else if (timePeriod == "recent"){
+            titleText = titleText.concat(" (2020 - 2026)");
+        }
         // Generate title
         const title = svg.append('g')
         .append("text")
@@ -313,14 +332,14 @@ export default function RevenueBarChart() {
         .style("text-anchor", "middle")
         .style("font-size", '15px')
         .style("font-weight", 900)
-        .text("Annual Top 10 Grossing Movies Total Revnue: Marvel's Contribution (2008 - 2025)") 
+        .text(titleText) 
     }
 
 
     return (
         <>
-            <div ref = {barRef} id = "revenue-comparison-container" style = {{width: "100%", height: "100%"}}>
-                <svg id = "revenue-comparison-svg" width = "100%" height = "100%"></svg>
+            <div ref = {barRef} id = {containerId} style = {{width: "100%", height: "100%"}}>
+                <svg id = {svgId} width = "100%" height = "100%"></svg>
             </div>
         </>
     )
