@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import * as d3 from 'd3'
 
 type Anchor = 'top' | 'bottom'
@@ -330,12 +330,19 @@ function MetricChart({
 export default function McuExplorationDashboard() {
   const TIMELINE_SIDE_PADDING = 28
   const TIMELINE_THUMB_SIZE = 16
+  const TIMELINE_BASE_TOP_PERCENT = 80
+  const TIMELINE_STACK_STEP = 13
+  const TIMELINE_TYPE_GAP_UNITS = 0.3
+  const TIMELINE_INFO_TOP_OFFSET = 220
   const [entries, setEntries] = useState<Entry[]>([])
   const [reviewsByImdbId, setReviewsByImdbId] = useState<Map<string, Review[]>>(new Map())
   const [reviewsByTitle, setReviewsByTitle] = useState<Map<string, Review[]>>(new Map())
   const [selectedYear, setSelectedYear] = useState<number | null>(null)
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null)
   const [expandedReviewKey, setExpandedReviewKey] = useState<string | null>(null)
+  const [timelineHover, setTimelineHover] = useState<{ title: string; left: number; top: number } | null>(null)
+  const [hoveredTimelineMarkerId, setHoveredTimelineMarkerId] = useState<string | null>(null)
+  const timelineRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -631,6 +638,47 @@ export default function McuExplorationDashboard() {
     () => entries.find(entry => entry.title === 'The Fantastic 4: First Steps') ?? null,
     [entries]
   )
+  const timelineMarkers = useMemo(() => {
+    const byYear = d3.group(entries, entry => entry.year)
+    const out: Array<{ id: string; title: string; mediaType: MediaType; ratio: number; stackUnit: number }> = []
+
+    for (let year = minYear; year <= maxYear; year++) {
+      const list = (byYear.get(year) ?? []).slice().sort((a, b) => a.releaseDate.getTime() - b.releaseDate.getTime())
+      const movies = list.filter(entry => entry.mediaType === 'movie')
+      const shows = list.filter(entry => entry.mediaType === 'show')
+
+      movies.forEach((entry, index) => {
+        out.push({
+          id: entry.id,
+          title: entry.title,
+          mediaType: entry.mediaType,
+          ratio: (year - minYear) / yearSpan,
+          stackUnit: index + 1
+        })
+      })
+
+      shows.forEach((entry, index) => {
+        out.push({
+          id: entry.id,
+          title: entry.title,
+          mediaType: entry.mediaType,
+          ratio: (year - minYear) / yearSpan,
+          stackUnit: movies.length + TIMELINE_TYPE_GAP_UNITS + (index + 1)
+        })
+      })
+    }
+
+    return out
+  }, [entries, maxYear, minYear, yearSpan, TIMELINE_TYPE_GAP_UNITS])
+
+  const updateTimelineHover = (event: React.MouseEvent, title: string) => {
+    const box = timelineRef.current?.getBoundingClientRect()
+    if (!box) return
+
+    const left = clamp(event.clientX - box.left + 12, 8, box.width - 220)
+    const top = clamp(event.clientY - box.top - 34, 8, box.height - 36)
+    setTimelineHover({ title, left, top })
+  }
 
   return (
     <div
@@ -651,7 +699,7 @@ export default function McuExplorationDashboard() {
         <div>
           <div style={{ fontSize: 20, fontWeight: 900 }}>MCU Exploration Dashboard</div>
           <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.65)', maxWidth: 760, lineHeight: 1.3 }}>
-            Scrub through the MCU timeline, inspect year-by-year rating and profit trends, and open any movie or show released in the selected year.
+            Click, hold and slide the black dot through the MCU timeline, inspect year-by-year rating and profit trends, and click any movie or show released in the selected year at Poster Gallery to view the details.
           </div>
         </div>
       </div>
@@ -687,6 +735,7 @@ export default function McuExplorationDashboard() {
             }}
           >
             <div
+              ref={timelineRef}
               style={{
                 position: 'relative',
                 height: '100%',
@@ -719,7 +768,7 @@ export default function McuExplorationDashboard() {
                   position: 'absolute',
                   left: TIMELINE_SIDE_PADDING,
                   right: TIMELINE_SIDE_PADDING,
-                  top: '56%',
+                  top: `${TIMELINE_BASE_TOP_PERCENT}%`,
                   height: 12,
                   transform: 'translateY(-50%)',
                   background: 'rgba(0,0,0,0.08)',
@@ -737,7 +786,7 @@ export default function McuExplorationDashboard() {
                       position: 'absolute',
                       left: timelineOffset(leftRatio),
                       width: timelineWidth(widthRatio),
-                      top: '56%',
+                      top: `${TIMELINE_BASE_TOP_PERCENT}%`,
                       height: 12,
                       transform: 'translateY(-50%)',
                       background: phaseColors[range.phase],
@@ -753,7 +802,7 @@ export default function McuExplorationDashboard() {
                   style={{
                     position: 'absolute',
                     left: `calc(${timelineOffset((fantasticFourEntry.releaseDate.getTime() - minTime) / timeSpan)} - 10px)`,
-                    top: '56%',
+                    top: `${TIMELINE_BASE_TOP_PERCENT}%`,
                     right: TIMELINE_SIDE_PADDING,
                     height: 12,
                     transform: 'translateY(-50%)',
@@ -764,25 +813,74 @@ export default function McuExplorationDashboard() {
                 />
               ) : null}
 
-              <div
-                style={{
-                  position: 'absolute',
-                  left: timelineOffset((currentYear - minYear) / yearSpan),
-                  top: 12,
-                  bottom: 34,
-                  width: 2,
-                  background: '#111',
-                  opacity: 0.45,
-                  transform: 'translateX(-50%)'
-                }}
-              />
+              {timelineMarkers.map(marker => {
+                const isHovered = hoveredTimelineMarkerId === marker.id
+                return (
+                <div
+                  key={marker.id}
+                  onMouseEnter={event => {
+                    setHoveredTimelineMarkerId(marker.id)
+                    updateTimelineHover(event, marker.title)
+                  }}
+                  onMouseMove={event => updateTimelineHover(event, marker.title)}
+                  onMouseLeave={() => {
+                    setTimelineHover(null)
+                    setHoveredTimelineMarkerId(null)
+                  }}
+                  style={{
+                    position: 'absolute',
+                    left: timelineOffset(marker.ratio),
+                    top: `calc(${TIMELINE_BASE_TOP_PERCENT}% - ${marker.stackUnit * TIMELINE_STACK_STEP + 8}px)`,
+                    transform: `translate(-50%, -50%) scale(${isHovered ? 1.24 : 1})`,
+                    width: 12,
+                    height: 12,
+                    borderRadius: marker.mediaType === 'movie' ? '50%' : 0,
+                    clipPath: marker.mediaType === 'show' ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : undefined,
+                    background: '#FFCC00',
+                    border: `${isHovered ? 1.4 : 1}px solid rgba(0,0,0,0.78)`,
+                    boxShadow: isHovered ? '0 5px 12px rgba(0,0,0,0.35)' : 'none',
+                    boxSizing: 'border-box',
+                    zIndex: isHovered ? 11 : 8,
+                    cursor: 'pointer',
+                    transition: 'transform 120ms ease, box-shadow 120ms ease, border-width 120ms ease'
+                  }}
+                />
+                )
+              })}
+
+              {timelineHover ? (
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: timelineHover.left,
+                    top: timelineHover.top,
+                    pointerEvents: 'none',
+                    zIndex: 12,
+                    background: 'rgba(255,255,255,0.97)',
+                    border: '1px solid rgba(0,0,0,0.14)',
+                    borderRadius: 10,
+                    boxShadow: '0 8px 18px rgba(0,0,0,0.16)',
+                    padding: '7px 9px',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: 'rgba(0,0,0,0.84)',
+                    maxWidth: 220,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {timelineHover.title}
+                </div>
+              ) : null}
 
               {selectedTimelineMessage ? (
                 <div
                   style={{
                     position: 'absolute',
-                    top: 10,
-                    right: 10,
+                    left: '50%',
+                    top: `calc(${TIMELINE_BASE_TOP_PERCENT}% - ${TIMELINE_INFO_TOP_OFFSET}px)`,
+                    transform: 'translateX(-50%)',
                     width: 220,
                     padding: 12,
                     borderRadius: 14,
@@ -803,8 +901,9 @@ export default function McuExplorationDashboard() {
                 <div
                   style={{
                     position: 'absolute',
-                    top: 10,
-                    right: 10,
+                    left: '50%',
+                    top: `calc(${TIMELINE_BASE_TOP_PERCENT}% - ${TIMELINE_INFO_TOP_OFFSET}px)`,
+                    transform: 'translateX(-50%)',
                     width: 220,
                     display: 'flex',
                     gap: 10,
@@ -864,6 +963,33 @@ export default function McuExplorationDashboard() {
                     <span>{`Phase ${phase}`}</span>
                   </div>
                 ))}
+                <div style={{ width: 1, height: 12, background: 'rgba(0,0,0,0.2)', margin: '0 4px' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      background: '#FFCC00',
+                      border: '1px solid rgba(0,0,0,0.72)',
+                      display: 'inline-block'
+                    }}
+                  />
+                  <span>Movie</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span
+                    style={{
+                      width: 10,
+                      height: 10,
+                      background: '#FFCC00',
+                      border: '1px solid rgba(0,0,0,0.72)',
+                      clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
+                      display: 'inline-block'
+                    }}
+                  />
+                  <span>TV Show</span>
+                </div>
               </div>
 
               <input
@@ -878,7 +1004,7 @@ export default function McuExplorationDashboard() {
                   position: 'absolute',
                   left: TIMELINE_SIDE_PADDING - TIMELINE_THUMB_SIZE / 2,
                   right: TIMELINE_SIDE_PADDING - TIMELINE_THUMB_SIZE / 2,
-                  top: '56%',
+                  top: `${TIMELINE_BASE_TOP_PERCENT}%`,
                   transform: 'translateY(-50%)',
                   width: `calc(100% - ${TIMELINE_SIDE_PADDING * 2 - TIMELINE_THUMB_SIZE}px)`,
                   margin: 0,
@@ -1074,7 +1200,7 @@ export default function McuExplorationDashboard() {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
                 <div style={{ fontSize: 17, fontWeight: 800 }}>Top User Reviews</div>
-                <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.55)' }}>Click a card to expand/collapse</div>
+                <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.55)' }}>Click a review to expand/collapse</div>
               </div>
               {selectedEntry ? (
                 selectedReviews.length > 0 ? (

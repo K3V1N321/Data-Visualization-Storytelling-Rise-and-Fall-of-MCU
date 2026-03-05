@@ -314,12 +314,17 @@ export default function McuConnectionsPhase46() {
     const dotStrokeW = 1.5
     const dotFill: Record<MediaType, string> = {
       movie: '#FFCC00',
-      show: 'rgba(33, 77, 140, 0.85)'
+      show: '#FFCC00'
     }
     const dotStroke: Record<MediaType, string> = {
       movie: 'black',
       show: 'rgba(0,0,0,0.9)'
     }
+    const markerPath = (mediaType: MediaType, radius: number) =>
+      d3
+        .symbol()
+        .type(mediaType === 'movie' ? d3.symbolCircle : d3.symbolTriangle)
+        .size(mediaType === 'movie' ? Math.PI * radius * radius : Math.PI * radius * radius * 0.64)()
 
     const arcStyle: Record<
       ArcType,
@@ -447,14 +452,13 @@ export default function McuConnectionsPhase46() {
     const gDots = svg.append('g').attr('class', 'dots')
 
     gDots
-      .selectAll('circle.movie-dot')
+      .selectAll('path.media-dot')
       .data(entries)
-      .join('circle')
-      .attr('class', 'movie-dot')
+      .join('path')
+      .attr('class', 'media-dot')
       .attr('data-title', d => d.title)
-      .attr('cx', d => x(d.releaseDate))
-      .attr('cy', yMid)
-      .attr('r', dotR)
+      .attr('d', d => markerPath(d.mediaType, dotR))
+      .attr('transform', d => `translate(${x(d.releaseDate)}, ${yMid})`)
       .attr('fill', d => dotFill[d.mediaType])
       .attr('stroke', d => dotStroke[d.mediaType])
       .attr('stroke-width', dotStrokeW)
@@ -508,7 +512,7 @@ export default function McuConnectionsPhase46() {
 
       const merged = enter.merge(card)
       merged
-        .style('border-left', d => `4px solid ${d.m.mediaType === 'movie' ? '#FFCC00' : 'rgba(0,0,0,0.72)'}`)
+        .style('border-left', '4px solid rgba(0,0,0,0.25)')
         .text(d => d.m.title)
 
       const cardW = 260
@@ -546,9 +550,9 @@ export default function McuConnectionsPhase46() {
       clearMultiTooltips()
 
       svg
-        .selectAll<SVGCircleElement, TimelineEntry>('circle.movie-dot')
+        .selectAll<SVGPathElement, TimelineEntry>('path.media-dot')
         .interrupt()
-        .attr('r', dotR)
+        .attr('d', d => markerPath(d.mediaType, dotR))
         .attr('opacity', 1)
         .attr('stroke-width', dotStrokeW)
 
@@ -568,10 +572,10 @@ export default function McuConnectionsPhase46() {
       renderMultiTooltips(highlightTitles, hoverTitle)
 
       svg
-        .selectAll<SVGCircleElement, TimelineEntry>('circle.movie-dot')
+        .selectAll<SVGPathElement, TimelineEntry>('path.media-dot')
         .interrupt()
         .attr('opacity', DOT_DIM_OPACITY)
-        .attr('r', dotR)
+        .attr('d', d => markerPath(d.mediaType, dotR))
         .attr('stroke-width', dotStrokeW)
 
       svg
@@ -587,19 +591,19 @@ export default function McuConnectionsPhase46() {
         .attr('stroke-width', d => baseArcStrokeW(d) + 1.2)
 
       svg
-        .selectAll<SVGCircleElement, TimelineEntry>('circle.movie-dot')
+        .selectAll<SVGPathElement, TimelineEntry>('path.media-dot')
         .filter(d => highlightTitles.has(d.title))
         .attr('opacity', 1)
-        .attr('r', d => (d.title === hoverTitle ? dotR + 3 : dotR + 1))
+        .attr('d', d => markerPath(d.mediaType, d.title === hoverTitle ? dotR + 3 : dotR + 1))
 
       svg
-        .selectAll<SVGCircleElement, TimelineEntry>('circle.movie-dot')
+        .selectAll<SVGPathElement, TimelineEntry>('path.media-dot')
         .filter(d => d.title === hoverTitle)
         .attr('stroke-width', dotStrokeW + 1.2)
     }
 
     svg
-      .selectAll<SVGCircleElement, TimelineEntry>('circle.movie-dot')
+      .selectAll<SVGPathElement, TimelineEntry>('path.media-dot')
       .on('mouseenter', (_evt, d) => applyHighlight(d.title))
       .on('mouseleave', () => clearHighlight())
 
@@ -647,10 +651,20 @@ export default function McuConnectionsPhase46() {
       .attr('transform', (_d, i) => `translate(0, ${8 + i * 18})`)
 
     mItem
+      .filter(d => d.type === 'movie')
       .append('circle')
       .attr('r', 5)
       .attr('cx', 0)
       .attr('cy', -20)
+      .attr('fill', d => dotFill[d.type])
+      .attr('stroke', d => dotStroke[d.type])
+      .attr('stroke-width', 1.2)
+
+    mItem
+      .filter(d => d.type === 'show')
+      .append('path')
+      .attr('d', d3.symbol().type(d3.symbolTriangle).size(24))
+      .attr('transform', 'translate(0, -20)')
       .attr('fill', d => dotFill[d.type])
       .attr('stroke', d => dotStroke[d.type])
       .attr('stroke-width', 1.2)

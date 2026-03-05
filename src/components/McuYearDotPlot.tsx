@@ -203,14 +203,14 @@ export default function McuYearDotPlot() {
       .style('fill', 'rgba(0,0,0,0.7)')
       .text(d => String(d))
 
-    // --- legend (optional but small + useful)
+    // legend
     const MOVIE_FILL = 'rgba(255, 204, 0, 0.95)'
-    const SHOW_FILL = 'rgba(33, 77, 140, 0.85)'
+    const SHOW_FILL = MOVIE_FILL
 
     const legend = svg.append('g').attr('transform', `translate(${x0}, ${margin.top})`)
     const legendItems = [
-      { label: 'Movies', fill: MOVIE_FILL, stroke: 'rgba(0,0,0,0.45)' },
-      { label: 'TV Shows', fill: SHOW_FILL, stroke: 'rgba(0,0,0,0.35)' }
+      { label: 'Movies', fill: MOVIE_FILL, stroke: 'rgba(0,0,0,0.45)', shape: 'circle' as const },
+      { label: 'TV Shows', fill: SHOW_FILL, stroke: 'rgba(0,0,0,0.35)', shape: 'triangle' as const }
     ]
 
     const li = legend
@@ -220,10 +220,19 @@ export default function McuYearDotPlot() {
       .attr('class', 'li')
       .attr('transform', (_d, i) => `translate(${i * 110}, 0)`)
 
-    li.append('circle')
+    li.filter(d => d.shape === 'circle')
+      .append('circle')
       .attr('r', 4.5)
       .attr('cx', 0)
       .attr('cy', 0)
+      .attr('fill', d => d.fill)
+      .attr('stroke', d => d.stroke)
+      .attr('stroke-width', 1)
+
+    li.filter(d => d.shape === 'triangle')
+      .append('path')
+      .attr('d', d3.symbol().type(d3.symbolTriangle).size(40))
+      .attr('transform', 'translate(0, 0)')
       .attr('fill', d => d.fill)
       .attr('stroke', d => d.stroke)
       .attr('stroke-width', 1)
@@ -237,6 +246,7 @@ export default function McuYearDotPlot() {
 
     // --- dots stacked above the line
     const gDots = svg.append('g').attr('class', 'year-stacks')
+    const showTriangle = d3.symbol().type(d3.symbolTriangle).size(Math.PI * dotR * dotR * 0.72)
 
     for (const b of bins) {
       const cx = xTime(yearToDate(b.year))
@@ -256,12 +266,11 @@ export default function McuYearDotPlot() {
       // shows above movies, with a small gap between groups
       const showOffset = b.movies > 0 ? b.movies * dotStep + typeGap : 0
       gDots
-        .selectAll(`circle.show-${b.year}`)
+        .selectAll(`path.show-${b.year}`)
         .data(d3.range(b.shows))
-        .join('circle')
-        .attr('cx', cx)
-        .attr('cy', i => yLine - showOffset - (i + 1) * dotStep)
-        .attr('r', dotR)
+        .join('path')
+        .attr('d', showTriangle)
+        .attr('transform', i => `translate(${cx}, ${yLine - showOffset - (i + 1) * dotStep})`)
         .attr('fill', SHOW_FILL)
         .attr('stroke', 'rgba(0,0,0,0.35)')
         .attr('stroke-width', 1)
