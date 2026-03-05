@@ -23,7 +23,8 @@ const theme = createTheme({
 
 function Layout() {
   const TIMELINE_HEIGHT = 500
-  const CONNECTION_HEIGHT = 400
+  const CONNECTION_HEIGHT = 560
+  const CONNECTION_PHASE46_HEIGHT = 560
   const BAR_CHART_HEIGHT = 400
   const DOT_PLOT_HEIGHT = 380
   const LINE_CHART_HEIGHT = 400
@@ -66,7 +67,7 @@ function Layout() {
                   width: '95vw',       
                   maxWidth: 1800,       
                   height: '100%',       
-                  p: 2,
+                  p: 0.5,
                   border: '1px solid #e0e0e0',
                   borderRadius: 2,
                   bgcolor: '#fafafa',
@@ -143,6 +144,14 @@ function Layout() {
           </Grid>
         </Grid>
 
+        <Grid container spacing = {1} sx = {{width: "50%", height: BAR_CHART_HEIGHT, flex: "0 0 auto"}}>
+          <Grid sx = {{width: "100%", height: "100%"}}>
+            <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
+              <RevenueBarChart timePeriod = "recent"/>
+            </Box>
+          </Grid>
+        </Grid>
+
         {/* ✅ ===== DOT PLOT PANEL (AFTER REVENUE) ===== */}
         <Grid container spacing={1} sx={{ height: DOT_PLOT_HEIGHT, flex: '0 0 auto' }}>
           <Grid item xs={12} sx={{ height: '100%' }}>
@@ -172,14 +181,15 @@ function Layout() {
           container
           spacing={1}
           sx={{
-            height: CONNECTION_HEIGHT,
+            height: `${CONNECTION_PHASE46_HEIGHT}px`,
+            minHeight: `${CONNECTION_PHASE46_HEIGHT}px`,
             flex: '0 0 auto'
           }}
         >
-          <Grid item xs={12} sx={{ height: '100%' }}>
+          <Grid item xs={12} sx={{ height: `${CONNECTION_PHASE46_HEIGHT}px`, minHeight: `${CONNECTION_PHASE46_HEIGHT}px` }}>
             <Box
               sx={{
-                height: '100%',
+                height: `${CONNECTION_PHASE46_HEIGHT}px`,
                 width: '100%',
                 display: 'flex',
                 justifyContent: 'center'
@@ -189,7 +199,7 @@ function Layout() {
                 sx={{
                   width: '95vw',
                   maxWidth: 1800,
-                  height: '100%',
+                  height: `${CONNECTION_PHASE46_HEIGHT}px`,
                   p: 2,
                   border: '1px solid #e0e0e0',
                   borderRadius: 2,
@@ -201,14 +211,6 @@ function Layout() {
                   <McuConnectionsPhase46 />
                 </Box>
               </Box>
-            </Box>
-          </Grid>
-        </Grid>
-
-        <Grid container spacing = {1} sx = {{width: "50%", height: BAR_CHART_HEIGHT, flex: "0 0 auto"}}>
-          <Grid sx = {{width: "100%", height: "100%"}}>
-            <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
-              <RevenueBarChart timePeriod = "recent"/>
             </Box>
           </Grid>
         </Grid>
@@ -227,7 +229,7 @@ function Layout() {
           </Grid>
         </Grid>
 
-        <Grid container spacing = {1} sx = {{width: "100%", height: SCATTER_PLOT_HEIGHT, flex: "0 0 auto"}}>
+        {/* <Grid container spacing = {1} sx = {{width: "100%", height: SCATTER_PLOT_HEIGHT, flex: "0 0 auto"}}>
           <Grid size = {4} sx = {{height: "100%"}}>
             <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
               <RatingsProfitScatterPlot timePeriod = "early"/>
@@ -239,7 +241,7 @@ function Layout() {
               <RatingsProfitScatterPlot timePeriod = "recent"/>
             </Box>
           </Grid>
-        </Grid>
+        </Grid> */}
 
         <Grid
           container

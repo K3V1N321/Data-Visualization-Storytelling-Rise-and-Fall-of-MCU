@@ -343,6 +343,7 @@ export default function McuExplorationDashboard() {
   const [timelineHover, setTimelineHover] = useState<{ title: string; left: number; top: number } | null>(null)
   const [hoveredTimelineMarkerId, setHoveredTimelineMarkerId] = useState<string | null>(null)
   const timelineRef = useRef<HTMLDivElement | null>(null)
+  const timelineTooltipRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -675,8 +676,22 @@ export default function McuExplorationDashboard() {
     const box = timelineRef.current?.getBoundingClientRect()
     if (!box) return
 
-    const left = clamp(event.clientX - box.left + 12, 8, box.width - 220)
-    const top = clamp(event.clientY - box.top - 34, 8, box.height - 36)
+    const px = event.clientX - box.left
+    const py = event.clientY - box.top
+    const gapX = 14
+    const gapY = 12
+    const tipW = timelineTooltipRef.current?.offsetWidth ?? 160
+    const tipH = timelineTooltipRef.current?.offsetHeight ?? 34
+
+    let left = px + gapX
+    if (left + tipW > box.width - 8) left = px - tipW - gapX
+    left = clamp(left, 8, box.width - tipW - 8)
+
+    let top = py - tipH / 2
+    if (top < 8) top = py + gapY
+    if (top + tipH > box.height - 8) top = py - tipH - gapY
+    top = clamp(top, 8, box.height - tipH - 8)
+
     setTimelineHover({ title, left, top })
   }
 
@@ -850,6 +865,7 @@ export default function McuExplorationDashboard() {
 
               {timelineHover ? (
                 <div
+                  ref={timelineTooltipRef}
                   style={{
                     position: 'absolute',
                     left: timelineHover.left,
@@ -1019,7 +1035,7 @@ export default function McuExplorationDashboard() {
 
           <div style={{ display: 'grid', gridTemplateRows: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12, minHeight: 0 }}>
             <MetricChart
-              title="Average IMDb Rating for Movie over Years"
+              title="Average IMDb Rating for MCU Movie over Years"
               data={ratingData}
               selectedYear={currentYear}
               formatter={formatRating}
@@ -1027,7 +1043,7 @@ export default function McuExplorationDashboard() {
               yDomainMode="tight"
             />
             <MetricChart
-              title="Average Movie Profit over Years"
+              title="Average MCU Movie Profit over Years"
               data={profitData}
               selectedYear={currentYear}
               formatter={formatRevenue}

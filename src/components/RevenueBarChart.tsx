@@ -21,7 +21,7 @@ type RevenueSplit = {
 
 export default function RevenueBarChart({timePeriod}) {
     const barRef = useRef<HTMLDivElement> (null);
-    const margin: Margin = { top: 36, right: 100, bottom: 40, left: 40 }
+    const margin: Margin = { top: 34, right: 92, bottom: 46, left: 88 }
     const [size, setSize] = useState<ComponentSize>({width: 0, height: 0});
     const onResize = useDebounceCallback((size: ComponentSize) => setSize(size), 200);
     const [movies, setMovies] = useState<Movie[]>([]);
@@ -50,10 +50,10 @@ export default function RevenueBarChart({timePeriod}) {
     }
     
 
-    const titleGraphPadding = 90;
-    const legendGraphPadding = 20;
+    const titleGraphPadding = 84;
+    const legendGraphPadding = 14;
     const normalTextFontSize = 13;
-    const coloring = [{"type": "Marvel", "color": "#8B0000"}, {"type": "Other", "color": "#2F4F4F"}]
+    const coloring = [{"type": "Marvel", "color": "#b21f3a"}, {"type": "Other", "color": "#8a97a3"}]
 
     useResizeObserver({ ref: barRef as React.RefObject<HTMLDivElement>, onResize });
 
@@ -99,9 +99,7 @@ export default function RevenueBarChart({timePeriod}) {
         if (timePeriod == "early") {
             years = years.filter((year) => year <= 2019);
         }
-        else if (timePeriod == "recent") {
-            years = years.filter((year) => year > 2019);
-        }
+        // "recent" mode now shows the full range (2008 - 2025)
   
         for (const year of years) {
             const yearMovies = movies.filter((movie) => movie.releaseYear == year);
@@ -117,7 +115,9 @@ export default function RevenueBarChart({timePeriod}) {
         const maxRevenue = d3.max(formattedData, (dataPoint) => dataPoint.marvelRevenue + dataPoint.otherMoviesRevenue);
         const xScale = d3.scaleBand()
         .domain(formattedData.map((dataPoint) => dataPoint.year))
-        .range([margin.left, size.width - margin.right]);
+        .range([margin.left, size.width - margin.right])
+        .paddingInner(0.22)
+        .paddingOuter(0.08);
 
         const xAxis = svg.append("g")
         .attr("transform", `translate(0, ${size.height - margin.bottom})`)
@@ -134,13 +134,34 @@ export default function RevenueBarChart({timePeriod}) {
         .domain([0, maxRevenue])
         .range([size.height - margin.bottom, margin.top + titleGraphPadding]);
 
+        // Horizontal grid lines for easier value reading
+        svg.append("g")
+        .attr("transform", `translate(${margin.left}, 0)`)
+        .call(
+            d3.axisLeft(yScale)
+            .ticks(6)
+            .tickSize(-(size.width - margin.left - margin.right))
+            .tickFormat(() => "")
+        )
+        .call((g) => g.select(".domain").remove())
+        .call((g) => g.selectAll("line")
+            .attr("stroke", "rgba(0,0,0,0.10)")
+            .attr("stroke-dasharray", "3,4"));
+
         const yAxis = svg.append("g")
         .attr("transform", `translate(${margin.left}, 0)`)
-        .call(d3.axisLeft(yScale));
+        .call(d3.axisLeft(yScale).ticks(6).tickFormat((d) => `$${Number(d).toFixed(1)}B`));
+
+        xAxis.call((g) => g.select(".domain").attr("stroke", "rgba(0,0,0,0.28)"));
+        xAxis.call((g) => g.selectAll("line").attr("stroke", "rgba(0,0,0,0.25)"));
+        xAxis.call((g) => g.selectAll("text").style("font-size", "11px").style("fill", "rgba(0,0,0,0.72)"));
+        yAxis.call((g) => g.select(".domain").remove());
+        yAxis.call((g) => g.selectAll("line").attr("stroke", "rgba(0,0,0,0.18)"));
+        yAxis.call((g) => g.selectAll("text").style("font-size", "11px").style("fill", "rgba(0,0,0,0.72)"));
 
         // Generte y-axis label
         svg.append("g")
-        .attr("transform", `translate(${margin.left / 2}, ${margin.top + titleGraphPadding + ((size.height - margin.top - titleGraphPadding - margin.bottom) / 2)}) rotate(-90)`)
+        .attr("transform", `translate(24, ${margin.top + titleGraphPadding + ((size.height - margin.top - titleGraphPadding - margin.bottom) / 2)}) rotate(-90)`)
         .append("text")
         .text("Revenue (Billion $)")
         .attr("text-anchor", "middle")
@@ -175,9 +196,11 @@ export default function RevenueBarChart({timePeriod}) {
             d3.select(this)
             .selectAll("rect")
             .transition()
-            .duration(300)
+            .duration(220)
             .ease(d3.easeCubicInOut)
-            .attr("stroke-width", "5px");
+            .attr("stroke", "rgba(0,0,0,0.55)")
+            .attr("stroke-width", "1.5px")
+            .attr("opacity", 0.9);
             
         })
         .on("mousemove", function(event, dataPoint) {
@@ -194,9 +217,10 @@ export default function RevenueBarChart({timePeriod}) {
             d3.select(this)
             .selectAll("rect")
             .transition()
-            .duration(300)
+            .duration(220)
             .ease(d3.easeCubicInOut)
-            .attr("stroke-width", "0px");
+            .attr("stroke-width", "0px")
+            .attr("opacity", 1);
         });
 
         // Create stacked bars of revenues of marvel and other movies for each year
@@ -225,18 +249,32 @@ export default function RevenueBarChart({timePeriod}) {
         .attr("y", (dataPoint) => yScale(dataPoint.y1))
         .attr("width", xScale.bandwidth())
         .attr("height", (dataPoint) => yScale(dataPoint.y0) - yScale(dataPoint.y1))
+        .attr("rx", 4)
+        .attr("ry", 4)
         .attr("fill", (dataPoint) => {
             return coloring.filter((colorData) => colorData.type == dataPoint.type)[0].color
         })
         .attr("stroke", "#FFFF00")
         .attr("stroke-width", "0px");
 
-        if (timePeriod == "early") {
-            // Generate annotation for 2019 bar (gretaest marvel revenue contribution) 
-            const data2019 = formattedData.filter((dataPoint) => dataPoint.year == 2019)[0];
-            const x = xScale(data2019.year) + xScale.bandwidth();
-            const barYTop = yScale(data2019.marvelRevenue + data2019.otherMoviesRevenue);
-            const xDistanceFromBar = 30
+        if (timePeriod == "early" || timePeriod == "recent") {
+            // Generate annotation for the year with the highest Marvel contribution ratio
+            const bestContribution = formattedData
+            .filter((dataPoint) => dataPoint.marvelRevenue + dataPoint.otherMoviesRevenue > 0)
+            .reduce((best, dataPoint) => {
+                const totalRevenue = dataPoint.marvelRevenue + dataPoint.otherMoviesRevenue;
+                const ratio = dataPoint.marvelRevenue / totalRevenue;
+                if (ratio > best.ratio) {
+                    return { dataPoint, ratio };
+                }
+                return best;
+            }, { dataPoint: formattedData[0], ratio: -1 });
+
+            if (bestContribution.ratio >= 0) {
+            const targetData = bestContribution.dataPoint;
+            const x = xScale(targetData.year);
+            const barYTop = yScale(targetData.marvelRevenue + targetData.otherMoviesRevenue);
+            const xDistanceFromBar = -34
             const yDistanceFromBar = 50
             const lineHeight = 1.2 * normalTextFontSize;
             const textBottomY = barYTop - yDistanceFromBar + lineHeight;
@@ -245,7 +283,7 @@ export default function RevenueBarChart({timePeriod}) {
             const defs = svg.append("defs")
             // Define arrowhead
             defs.append("marker")
-            .attr("id", "arrowhead")
+            .attr("id", `${timePeriod}-arrowhead`)
             .attr("viewBox", "0 0 10 10")
             .attr("refX", 5)
             .attr("refY", 5)
@@ -266,7 +304,7 @@ export default function RevenueBarChart({timePeriod}) {
             .append("tspan")
             .attr("x", x + xDistanceFromBar)
             .attr("dy", "0")
-            .text("Max Marvel")
+            .text("Peak Marvel")
             .append("tspan")
             .attr("x", x + xDistanceFromBar)
             .attr("dy", "1.2em")
@@ -280,7 +318,8 @@ export default function RevenueBarChart({timePeriod}) {
             .attr("y2", barYTop)
             .attr("stroke", "black")
             .attr("stroke-width", 1)
-            .attr("marker-end", "url(#arrowhead)");
+            .attr("marker-end", `url(#${timePeriod}-arrowhead)`);
+            }
         }
         
 
@@ -288,15 +327,16 @@ export default function RevenueBarChart({timePeriod}) {
         // Generate legend
         const legendContainer = svg.append("g")
         .attr("id", `${timePeriod}-revenue-comparison-legend`)
-        .attr("transform", `translate(${size.width - margin.right + legendGraphPadding}, ${margin.top + titleGraphPadding})`)
+        .attr("transform", `translate(${margin.left - 30}, ${margin.top + legendGraphPadding})`)
 
         // Generate legend title
         legendContainer.append("g")
         .append("text")
-        .attr("transform", `translate(0, 15)`)
+        .attr("transform", `translate(0, 12)`)
         .style("text-anchor", "right")
         .style("font-weight", "bold")
-        .style("font-size", "13px")
+        .style("font-size", "12px")
+        .style("fill", "rgba(0,0,0,0.72)")
         .text("Movie Type");
 
         const legendItems = legendContainer.selectAll(".legend-item")
@@ -304,26 +344,28 @@ export default function RevenueBarChart({timePeriod}) {
         .enter()
         .append("g")
         .attr("class", "legend-item")
-        .attr("transform", (dataPoint, i) => `translate(0, ${i * 25 + 20})`);
+        .attr("transform", (dataPoint, i) => `translate(0, ${i * 22 + 18})`);
 
         legendItems.append("rect")
-        .attr("width", 13)
-        .attr("height", 13)
+        .attr("width", 11)
+        .attr("height", 11)
+        .attr("rx", 2)
         .attr("fill", (dataPoint) => dataPoint.color);
 
         legendItems.append("text")
-        .attr("x", 15)
-        .attr("y", 11)
-        .style("font-size", `${normalTextFontSize}px`)
+        .attr("x", 16)
+        .attr("y", 9.5)
+        .style("font-size", "12px")
+        .style("fill", "rgba(0,0,0,0.75)")
         .text((dataPoint) => dataPoint.type)
         
 
-        let titleText = "Annual Top 10 Grossing Movies Total Revnue: Marvel's Contribution";
+        let titleText = "Annual Top-10 Box Office Revenue: Marvel vs Others";
         if (timePeriod == "early") {
             titleText = titleText.concat(" (2008 - 2019)");
         }
         else if (timePeriod == "recent"){
-            titleText = titleText.concat(" (2020 - 2026)");
+            titleText = titleText.concat(" (2008 - 2025)");
         }
         // Generate title
         const title = svg.append('g')

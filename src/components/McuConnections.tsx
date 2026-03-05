@@ -22,12 +22,6 @@ type Movie = {
   posterUrl: string | null
 }
 
-type PhaseRange = {
-  phase: Phase
-  start: Date
-  end: Date
-}
-
 type ArcSide = 'top' | 'bottom'
 type ArcType = 'sequel' | 'crossover' | 'carryover'
 type Connection = { type: ArcType; from: string; to: string; side?: ArcSide; label?: string }
@@ -69,7 +63,6 @@ const CONNECTIONS: Connection[] = [
   { type: 'crossover', from: 'Spider-Man: Homecoming', to: 'Avengers: Infinity War', side: 'bottom' },
   { type: 'sequel', from: 'Thor: Ragnarok', to: 'Thor: Love and Thunder', side: 'top' },
   { type: 'crossover', from: 'Thor: Ragnarok', to: 'Avengers: Infinity War', side: 'bottom' },
-  { type: 'carryover', from: 'Thor: Ragnarok', to: 'Avengers: Infinity War', side: 'top' },
   { type: 'sequel', from: 'Black Panther', to: 'Black Panther: Wakanda Forever', side: 'top' },
   { type: 'crossover', from: 'Black Panther', to: 'Avengers: Infinity War', side: 'top' },
   { type: 'sequel', from: 'Avengers: Infinity War', to: 'Avengers: Endgame', side: 'top' },
@@ -92,64 +85,7 @@ function isValidDate(d: Date) {
   return !Number.isNaN(d.getTime())
 }
 
-function midpoint(a: Date, b: Date) {
-  return new Date((a.getTime() + b.getTime()) / 2)
-}
-
 type FilterMode = 'all' | ArcType
-
-function clamp(v: number, lo: number, hi: number) {
-  return Math.max(lo, Math.min(hi, v))
-}
-
-/** ===== label overlap helpers ===== */
-function overlaps(a: DOMRect, b: DOMRect, pad = 6) {
-  return !(a.right + pad < b.left || a.left > b.right + pad || a.bottom + pad < b.top || a.top > b.bottom)
-}
-
-function resolveBandVerticalLayout(
-  nodes: Array<{ el: HTMLDivElement; cx: number }>,
-  baseTop: number,
-  direction: 'up' | 'down',
-  containerH: number,
-  gap = 4
-) {
-  nodes.sort((p, q) => p.cx - q.cx)
-
-  for (const n of nodes) n.el.style.top = `${baseTop}px`
-
-  for (let i = 0; i < nodes.length; i++) {
-    const a = nodes[i]
-    let moved = true
-    let guard = 0
-
-    while (moved && guard++ < 60) {
-      moved = false
-      const aRect = a.el.getBoundingClientRect()
-
-      for (let j = 0; j < i; j++) {
-        const b = nodes[j]
-        const bRect = b.el.getBoundingClientRect()
-
-        if (overlaps(aRect, bRect, gap)) {
-          const currentTop = parseFloat(a.el.style.top || '0')
-          const pushFactor = 0.6  // smaller = less push 
-          const pushBy = (direction === 'up' ? -1 : 1) * (bRect.height + gap) * pushFactor
-
-          let nextTop = currentTop + pushBy
-
-          const minTop = 6
-          const maxTop = containerH - aRect.height - 6
-          nextTop = clamp(nextTop, minTop, maxTop)
-
-          a.el.style.top = `${nextTop}px`
-          moved = true
-          break
-        }
-      }
-    }
-  }
-}
 
 export default function McuConnections() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -160,7 +96,6 @@ export default function McuConnections() {
   useResizeObserver({ ref: containerRef as React.RefObject<HTMLDivElement>, onResize })
 
   const [movies, setMovies] = useState<Movie[]>([])
-  const [phaseRanges, setPhaseRanges] = useState<PhaseRange[]>([])
   const [filterMode, setFilterMode] = useState<FilterMode>('all')
 
   useEffect(() => {
@@ -195,41 +130,8 @@ export default function McuConnections() {
         .filter((x): x is Movie => x !== null)
         .sort((a, b) => a.releaseDate.getTime() - b.releaseDate.getTime())
 
-      const grouped = d3.group(parsed, d => d.phase)
-      const firstOf: Partial<Record<Phase, Date>> = {}
-      const lastOf: Partial<Record<Phase, Date>> = {}
-
-      ;([1, 2, 3, 4, 5, 6] as Phase[]).forEach(p => {
-        const list = grouped.get(p)
-        if (!list || list.length === 0) return
-        firstOf[p] = list[0].releaseDate
-        lastOf[p] = list[list.length - 1].releaseDate
-      })
-
-      const overallStart = parsed[0]?.releaseDate
-      const overallEnd = parsed[parsed.length - 1]?.releaseDate
-
-      const ranges: PhaseRange[] = []
-      if (overallStart && overallEnd) {
-        const phases = ([1, 2, 3, 4, 5, 6] as Phase[]).filter(p => firstOf[p] && lastOf[p])
-        if (phases.length > 0) {
-          const boundaries: Date[] = [overallStart]
-          for (let i = 0; i < phases.length - 1; i++) {
-            const p = phases[i]
-            const next = phases[i + 1]
-            boundaries.push(midpoint(lastOf[p]!, firstOf[next]!))
-          }
-          boundaries.push(overallEnd)
-
-          for (let i = 0; i < phases.length; i++) {
-            ranges.push({ phase: phases[i], start: boundaries[i], end: boundaries[i + 1] })
-          }
-        }
-      }
-
       if (!cancelled) {
         setMovies(parsed)
-        setPhaseRanges(ranges)
       }
     }
 
@@ -237,7 +139,6 @@ export default function McuConnections() {
       console.error('Failed to load CSV:', err)
       if (!cancelled) {
         setMovies([])
-        setPhaseRanges([])
       }
     })
 
@@ -252,35 +153,24 @@ export default function McuConnections() {
     if (size.width <= 0 || size.height <= 0) return
     if (movies.length === 0) return
 
-    const root = d3.select(containerRef.current)
     const svg = d3.select(svgRef.current)
     svg.selectAll('*').remove()
 
-    // HTML overlay (title-only labels)
-    const overlay = root
-      .selectAll<HTMLDivElement, unknown>('div.mcu-multi-tooltips')
-      .data([null])
-      .join('div')
-      .attr('class', 'mcu-multi-tooltips')
-      .style('position', 'absolute')
-      .style('left', '0px')
-      .style('top', '0px')
-      .style('width', '100%')
-      .style('height', '100%')
-      .style('pointer-events', 'none')
-      .style('z-index', '5')
-
-    const margin: Margin = { top: 36, right: 70, bottom: 42, left: 70 }
+    const margin: Margin = { top: 42, right: 70, bottom: 24, left: 70 }
     const width = size.width
     const height = size.height
-    const yMid = Math.round(height / 2)
+    const yMid = 272
 
     const x0 = margin.left
     const x1 = width - margin.right
+    const topSafeY = -42
 
     const minDate = movies[0].releaseDate
     const maxDate = movies[movies.length - 1].releaseDate
-    const x = d3.scaleTime().domain([minDate, maxDate]).range([x0, x1])
+    const orderedTitles = movies.map(m => m.title)
+    const x = d3.scalePoint<string>().domain(orderedTitles).range([x0, x1]).padding(0.0)
+    const xPos = (title: string) => x(title) ?? x0
+    const pointStep = orderedTitles.length > 1 ? xPos(orderedTitles[1]) - xPos(orderedTitles[0]) : 0
 
     const phaseColors: Record<Phase, string> = {
       1: '#1f77b4',
@@ -299,16 +189,16 @@ export default function McuConnections() {
       ArcType,
       { label: string; stroke: string; strokeWidth: number; dash: string | null; opacity: number }
     > = {
-      sequel: { label: 'Direct sequels', stroke: 'rgba(0,0,0,0.55)', strokeWidth: 2.2, dash: null, opacity: 0.9 },
-      crossover: { label: 'Crossovers', stroke: 'rgba(0,0,0,0.45)', strokeWidth: 2.0, dash: '9,5', opacity: 0.85 },
-      carryover: { label: 'Major story carryovers', stroke: 'rgba(0,0,0,0.40)', strokeWidth: 2.0, dash: '2,4', opacity: 0.8 }
+      sequel: { label: 'Direct sequels', stroke: 'rgba(35,35,35,0.72)', strokeWidth: 1.9, dash: null, opacity: 0.92 },
+      crossover: { label: 'Crossovers', stroke: 'rgba(55,55,55,0.62)', strokeWidth: 1.7, dash: '9,5', opacity: 0.82 },
+      carryover: { label: 'Major story carryovers', stroke: 'rgba(70,70,70,0.58)', strokeWidth: 1.6, dash: '2,4', opacity: 0.78 }
     }
 
     // Title
     svg
       .append('text')
       .attr('x', width / 2)
-      .attr('y', margin.top - 14)
+      .attr('y', 46)
       .style('text-anchor', 'middle')
       .style('font-size', '18px')
       .style('font-weight', 900)
@@ -325,15 +215,29 @@ export default function McuConnections() {
       .attr('stroke-width', 18)
       .attr('stroke-linecap', 'round')
 
-    // phase segments
+    // phase segments based on order on the timeline (equal spacing by title order)
+    const phaseSegments = ([1, 2, 3, 4, 5, 6] as Phase[])
+      .map(phase => {
+        const list = movies.filter(movie => movie.phase === phase)
+        if (list.length === 0) return null
+        return { phase, startTitle: list[0].title, endTitle: list[list.length - 1].title }
+      })
+      .filter((d): d is { phase: Phase; startTitle: string; endTitle: string } => d !== null)
+
     svg
       .append('g')
       .selectAll('line.phase-line')
-      .data(phaseRanges)
+      .data(phaseSegments)
       .join('line')
       .attr('class', 'phase-line')
-      .attr('x1', d => x(d.start))
-      .attr('x2', d => x(d.end))
+      .attr('x1', (d, i) => {
+        const xStart = xPos(d.startTitle)
+        return i === 0 ? xStart : xStart - pointStep / 2
+      })
+      .attr('x2', (d, i) => {
+        const xEnd = xPos(d.endTitle)
+        return i === phaseSegments.length - 1 ? xEnd : xEnd + pointStep / 2
+      })
       .attr('y1', yMid)
       .attr('y2', yMid)
       .attr('stroke', d => phaseColors[d.phase])
@@ -372,11 +276,11 @@ export default function McuConnections() {
         const b = byTitle.get(c.to)
         if (!a || !b) return null
 
-        const x1p = x(a.releaseDate)
-        const x2p = x(b.releaseDate)
+        const x1p = xPos(a.title)
+        const x2p = xPos(b.title)
         const leftX = Math.min(x1p, x2p)
         const rightX = Math.max(x1p, x2p)
-        const side: ArcSide = c.side ?? 'top'
+        const side: ArcSide = 'top'
 
         return { ...c, side, a, b, x1: x1p, x2: x2p, leftX, rightX, span: rightX - leftX }
       })
@@ -385,20 +289,33 @@ export default function McuConnections() {
 
     const resolvedVisible = resolvedAll.filter(d => (filterMode === 'all' ? true : d.type === filterMode))
 
-    function assignLanes(list: typeof resolvedVisible) {
+    function assignLanes(list: typeof resolvedVisible, minGap = 18) {
       const laneRightEnds: number[] = []
-      return list.map(d => {
+      const sorted = [...list].sort((a, b) => b.span - a.span || a.leftX - b.leftX)
+      return sorted.map(d => {
         let lane = 0
-        while (lane < laneRightEnds.length && d.leftX <= laneRightEnds[lane] + 8) lane++
+        while (lane < laneRightEnds.length && d.leftX <= laneRightEnds[lane] + minGap) lane++
         if (lane === laneRightEnds.length) laneRightEnds.push(d.rightX)
         else laneRightEnds[lane] = d.rightX
         return { ...d, lane }
       })
     }
 
-    const arcsTop = assignLanes(resolvedVisible.filter(d => d.side === 'top'))
-    const arcsBottom = assignLanes(resolvedVisible.filter(d => d.side === 'bottom'))
-    const arcsWithLane = [...arcsTop, ...arcsBottom]
+    const sequelArcs = assignLanes(resolvedVisible.filter(d => d.type === 'sequel'), 10)
+    const crossoverArcsRaw = assignLanes(resolvedVisible.filter(d => d.type === 'crossover'))
+    const carryoverArcsRaw = assignLanes(resolvedVisible.filter(d => d.type === 'carryover'))
+    const crossoverArcs = crossoverArcsRaw
+    const carryoverArcs = carryoverArcsRaw
+    const arcsWithLane = [...sequelArcs, ...crossoverArcs, ...carryoverArcs]
+
+    const sequelAdj = new Map<string, Set<string>>()
+    for (const link of resolvedAll) {
+      if (link.type !== 'sequel') continue
+      if (!sequelAdj.has(link.from)) sequelAdj.set(link.from, new Set())
+      if (!sequelAdj.has(link.to)) sequelAdj.set(link.to, new Set())
+      sequelAdj.get(link.from)!.add(link.to)
+      sequelAdj.get(link.to)!.add(link.from)
+    }
 
     const gArcs = svg.append('g').attr('class', 'arcs')
 
@@ -415,11 +332,13 @@ export default function McuConnections() {
       .attr('stroke-dasharray', d => arcStyle[d.type].dash ?? null)
       .attr('d', d => {
         const dx = Math.abs(d.x2 - d.x1)
-        const base = 26
-        const laneLift = d.lane * 18
-        const spanLift = Math.max(18, Math.min(140, dx * 0.35))
-        const arcHeight = base + laneLift + spanLift
-        const cy = d.side === 'top' ? yMid - arcHeight : yMid + arcHeight
+        const base = 10
+        const laneLift = d.lane * 6
+        const spanLift = Math.max(16, Math.min(400, Math.pow(dx, 0.9) * 0.8))
+        const rawArcHeight = base + laneLift + spanLift
+        const maxArcHeight = Math.max(24, yMid - topSafeY)
+        const arcHeight = Math.min(rawArcHeight, maxArcHeight)
+        const cy = yMid - arcHeight
         return `M ${d.x1} ${yMid} Q ${(d.x1 + d.x2) / 2} ${cy} ${d.x2} ${yMid}`
       })
 
@@ -432,7 +351,7 @@ export default function McuConnections() {
       .join('circle')
       .attr('class', 'movie-dot')
       .attr('data-title', d => d.title)
-      .attr('cx', d => x(d.releaseDate))
+      .attr('cx', d => xPos(d.title))
       .attr('cy', yMid)
       .attr('r', dotR)
       .attr('fill', dotColor)
@@ -440,83 +359,20 @@ export default function McuConnections() {
       .attr('stroke-width', dotStrokeW)
       .style('cursor', 'pointer')
 
-    // HTML tooltip helpers
-    function clearMultiTooltips() {
-      overlay.selectAll('div.mcu-label').remove()
-    }
-
-    // resolves overlaps by pushing cards vertically in each band
-    function renderMultiTooltips(highlightTitles: Set<string>, anchorTitle: string) {
-      const items: Movie[] = []
-      for (const t of highlightTitles) {
-        const m = byTitle.get(t)
-        if (m) items.push(m)
-      }
-      items.sort((a, b) => x(a.releaseDate) - x(b.releaseDate))
-
-      const cardData = items.map((m, i) => {
-        const isAnchor = m.title === anchorTitle
-        const top = isAnchor ? true : i % 2 === 0
-        return { m, top, isAnchor, i }
-      })
-
-      const containerBox = containerRef.current!.getBoundingClientRect()
-
-      const card = overlay
-        .selectAll<HTMLDivElement, { m: Movie; top: boolean; isAnchor: boolean; i: number }>('div.mcu-label')
-        .data(cardData, d => d.m.id)
-
-      card.exit().remove()
-
-      const enter = card
-        .enter()
-        .append('div')
-        .attr('class', 'mcu-label')
-        .style('position', 'absolute')
-        .style('pointer-events', 'none')
-        .style('background', 'rgba(255,255,255,0.92)')
-        .style('border', '1px solid rgba(0,0,0,0.12)')
-        .style('border-radius', '10px')
-        .style('box-shadow', '0 8px 18px rgba(0,0,0,0.12)')
-        .style('padding', '8px 10px')
-        .style('transform', 'translate(-50%, 0)')
-        .style('font-size', '13px')
-        .style('font-weight', '800')
-        .style('color', 'rgba(0,0,0,0.85)')
-        .style('white-space', 'nowrap')
-        .style('max-width', '260px')
-        .style('overflow', 'hidden')
-        .style('text-overflow', 'ellipsis')
-
-      const merged = enter.merge(card)
-      merged.text(d => d.m.title)
-
-      // pass 1: baseline layout (left + base top/bottom)
-      const cardW = 260
-      const topBase = yMid - 80
-      const bottomBase = yMid + 18
-
-      merged.each(function (d) {
-        const cx = x(d.m.releaseDate)
-        const left = clamp(cx, 10 + cardW / 2, containerBox.width - 10 - cardW / 2)
-
-        d3.select(this).style('left', `${left}px`).style('top', `${d.top ? topBase : bottomBase}px`)
-      })
-
-      // pass 2: resolve overlaps in each band
-      const topNodes: Array<{ el: HTMLDivElement; cx: number }> = []
-      const bottomNodes: Array<{ el: HTMLDivElement; cx: number }> = []
-
-      merged.each(function (d) {
-        const el = this as HTMLDivElement
-        const cx = x(d.m.releaseDate)
-        if (d.top) topNodes.push({ el, cx })
-        else bottomNodes.push({ el, cx })
-      })
-
-      resolveBandVerticalLayout(topNodes, topBase, 'up', containerBox.height, 4)
-      resolveBandVerticalLayout(bottomNodes, bottomBase, 'down', containerBox.height, 4)
-    }
+    // movie names at the bottom of timeline
+    svg
+      .append('g')
+      .selectAll('text.movie-name')
+      .data(movies)
+      .join('text')
+      .attr('class', 'movie-name')
+      .attr('x', d => xPos(d.title))
+      .attr('y', yMid + 14)
+      .attr('transform', d => `rotate(70, ${xPos(d.title)}, ${yMid + 14})`)
+      .style('font-size', '9px')
+      .style('fill', 'rgba(0,0,0,0.72)')
+      .style('text-anchor', 'start')
+      .text(d => d.title)
 
     // Hover highlight
     const DOT_DIM_OPACITY = 0.18
@@ -526,8 +382,6 @@ export default function McuConnections() {
     const baseArcStrokeW = (d: (typeof arcsWithLane)[number]) => arcStyle[d.type].strokeWidth
 
     function clearHighlight() {
-      clearMultiTooltips()
-
       svg
         .selectAll<SVGCircleElement, Movie>('circle.movie-dot')
         .interrupt()
@@ -540,15 +394,54 @@ export default function McuConnections() {
         .interrupt()
         .attr('opacity', d => baseArcOpacity(d))
         .attr('stroke-width', d => baseArcStrokeW(d))
+
+      svg
+        .selectAll<SVGTextElement, Movie>('text.movie-name')
+        .interrupt()
+        .style('fill', 'rgba(0,0,0,0.72)')
+        .style('font-weight', '400')
+        .style('opacity', 1)
     }
 
     function applyHighlight(hoverTitle: string) {
-      const outgoing = arcsWithLane.filter(d => d.from === hoverTitle)
-
       const highlightTitles = new Set<string>([hoverTitle])
-      for (const a of outgoing) highlightTitles.add(a.to)
+      const sequelSeriesTitles = new Set<string>([hoverTitle])
+      let highlightArc: (d: (typeof arcsWithLane)[number]) => boolean
 
-      renderMultiTooltips(highlightTitles, hoverTitle)
+      if (filterMode === 'sequel' || filterMode === 'all') {
+        const queue = [hoverTitle]
+        while (queue.length > 0) {
+          const cur = queue.shift()!
+          const neighbors = sequelAdj.get(cur)
+          if (!neighbors) continue
+          for (const n of neighbors) {
+            if (sequelSeriesTitles.has(n)) continue
+            sequelSeriesTitles.add(n)
+            highlightTitles.add(n)
+            queue.push(n)
+          }
+        }
+
+        if (filterMode === 'sequel') {
+          highlightArc = d => d.type === 'sequel' && sequelSeriesTitles.has(d.from) && sequelSeriesTitles.has(d.to)
+        } else {
+          const relatedNonSequel = arcsWithLane.filter(
+            d => d.type !== 'sequel' && (d.from === hoverTitle || d.to === hoverTitle)
+          )
+          for (const a of relatedNonSequel) {
+            highlightTitles.add(a.from)
+            highlightTitles.add(a.to)
+          }
+
+          highlightArc = d =>
+            (d.type === 'sequel' && sequelSeriesTitles.has(d.from) && sequelSeriesTitles.has(d.to)) ||
+            (d.type !== 'sequel' && (d.from === hoverTitle || d.to === hoverTitle))
+        }
+      } else {
+        const outgoing = arcsWithLane.filter(d => d.from === hoverTitle)
+        for (const a of outgoing) highlightTitles.add(a.to)
+        highlightArc = d => d.from === hoverTitle
+      }
 
       // dim all
       svg
@@ -567,7 +460,7 @@ export default function McuConnections() {
       // highlight outgoing arcs
       svg
         .selectAll<SVGPathElement, (typeof arcsWithLane)[number]>('path.arc')
-        .filter(d => d.from === hoverTitle)
+        .filter(d => highlightArc(d))
         .attr('opacity', d => Math.min(1, baseArcOpacity(d) + 0.15))
         .attr('stroke-width', d => baseArcStrokeW(d) + 1.2)
 
@@ -582,6 +475,18 @@ export default function McuConnections() {
         .selectAll<SVGCircleElement, Movie>('circle.movie-dot')
         .filter(d => d.title === hoverTitle)
         .attr('stroke-width', dotStrokeW + 1.2)
+
+      svg
+        .selectAll<SVGTextElement, Movie>('text.movie-name')
+        .interrupt()
+        .style('opacity', 0.28)
+
+      svg
+        .selectAll<SVGTextElement, Movie>('text.movie-name')
+        .filter(d => highlightTitles.has(d.title))
+        .style('opacity', 1)
+        .style('fill', d => (d.title === hoverTitle ? 'rgba(0,0,0,0.95)' : 'rgba(0,0,0,0.84)'))
+        .style('font-weight', d => (d.title === hoverTitle ? '700' : '600'))
     }
 
     svg
@@ -590,7 +495,10 @@ export default function McuConnections() {
       .on('mouseleave', () => clearHighlight())
 
     // Legends (unchanged)
-    const arcLegend = svg.append('g').attr('transform', `translate(${margin.left}, ${height - margin.bottom + 0})`)
+    const phaseLegendY = 516
+    const arcLegendY = phaseLegendY - 5
+
+    const arcLegend = svg.append('g').attr('transform', `translate(${margin.left}, ${arcLegendY})`)
     const arcLegendItems: Array<{ type: ArcType }> = [{ type: 'sequel' }, { type: 'crossover' }, { type: 'carryover' }]
 
     const aItem = arcLegend
@@ -620,7 +528,7 @@ export default function McuConnections() {
       .style('fill', 'rgba(0,0,0,0.75)')
       .text(d => arcStyle[d.type].label)
 
-    const phaseLegend = svg.append('g').attr('transform', `translate(${margin.left}, ${height - margin.bottom + 18})`)
+    const phaseLegend = svg.append('g').attr('transform', `translate(${margin.left}, ${phaseLegendY})`)
     const phaseLegendItems: Array<{ phase: Phase; label: string }> = [
       { phase: 1, label: 'Phase 1' },
       { phase: 2, label: 'Phase 2' },
@@ -653,11 +561,7 @@ export default function McuConnections() {
       .style('font-size', '12px')
       .style('fill', 'rgba(0,0,0,0.75)')
       .text(d => d.label)
-
-    return () => {
-      clearMultiTooltips()
-    }
-  }, [movies, phaseRanges, size, filterMode])
+  }, [movies, size, filterMode])
 
   const btnStyle = (active: boolean): React.CSSProperties => ({
     border: '1px solid rgba(0,0,0,0.18)',
@@ -686,7 +590,7 @@ export default function McuConnections() {
       <div
         style={{
           position: 'absolute',
-          top: 10,
+          top: 46,
           right: 10,
           zIndex: 30,
           display: 'flex',

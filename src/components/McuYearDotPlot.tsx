@@ -26,6 +26,8 @@ type YearBin = {
   total: number
 }
 
+type YearItemMap = Map<number, { movies: string[]; shows: string[] }>
+
 function isValidDate(d: Date) {
   return !Number.isNaN(d.getTime())
 }
@@ -45,6 +47,7 @@ export default function McuYearDotPlot() {
   useResizeObserver({ ref: containerRef as React.RefObject<HTMLDivElement>, onResize })
 
   const [bins, setBins] = useState<YearBin[]>([])
+  const [itemsByYear, setItemsByYear] = useState<YearItemMap>(new Map())
   const [yearDomain, setYearDomain] = useState<{ minYear: number; maxYear: number } | null>(null)
 
   // =========================
@@ -59,18 +62,30 @@ export default function McuYearDotPlot() {
         d3.csv('/data/marvel_shows_data.csv') as unknown as Promise<ShowRow[]>
       ])
 
-      const movieYears = movieRows
+      const movieItems = movieRows
         .filter(r => r.title !== 'The Incredible Hulk')
-        .map(r => parseYear(r.release_date))
-        .filter((y): y is number => y !== null)
+        .map(r => {
+          const year = parseYear(r.release_date)
+          const title = String(r.title ?? '').trim()
+          return year === null || !title ? null : { year, title }
+        })
+        .filter((d): d is { year: number; title: string } => d !== null)
 
-      const showYears = showRows
-        .map(r => parseYear(r.release_date))
-        .filter((y): y is number => y !== null)
+      const showItems = showRows
+        .map(r => {
+          const year = parseYear(r.release_date)
+          const title = String(r.title ?? '').trim()
+          return year === null || !title ? null : { year, title }
+        })
+        .filter((d): d is { year: number; title: string } => d !== null)
+
+      const movieYears = movieItems.map(d => d.year)
+      const showYears = showItems.map(d => d.year)
 
       if (movieYears.length === 0 && showYears.length === 0) {
         if (!cancelled) {
           setBins([])
+          setItemsByYear(new Map())
           setYearDomain(null)
         }
         return
@@ -87,6 +102,17 @@ export default function McuYearDotPlot() {
 
       const movieCount = d3.rollup(movieYears, v => v.length, y => y)
       const showCount = d3.rollup(showYears, v => v.length, y => y)
+      const yearItems: YearItemMap = new Map()
+
+      for (let y = minYear; y <= maxYear; y++) yearItems.set(y, { movies: [], shows: [] })
+      for (const d of movieItems) {
+        const bucket = yearItems.get(d.year)
+        if (bucket) bucket.movies.push(d.title)
+      }
+      for (const d of showItems) {
+        const bucket = yearItems.get(d.year)
+        if (bucket) bucket.shows.push(d.title)
+      }
 
       const out: YearBin[] = []
       for (let y = minYear; y <= maxYear; y++) {
@@ -97,6 +123,7 @@ export default function McuYearDotPlot() {
 
       if (!cancelled) {
         setBins(out)
+        setItemsByYear(yearItems)
         setYearDomain({ minYear, maxYear })
       }
     }
@@ -105,6 +132,7 @@ export default function McuYearDotPlot() {
       console.error('Failed to load dot-plot CSVs:', err)
       if (!cancelled) {
         setBins([])
+        setItemsByYear(new Map())
         setYearDomain(null)
       }
     })
@@ -122,8 +150,54 @@ export default function McuYearDotPlot() {
     if (bins.length === 0) return
     if (!yearDomain) return
 
+    const root = d3.select(containerRef.current)
     const svg = d3.select(svgRef.current)
     svg.selectAll('*').remove()
+    const tooltip = root
+      .selectAll<HTMLDivElement, unknown>('div.mcu-dotplot-tooltip')
+      .data([null])
+      .join('div')
+      .attr('class', 'mcu-dotplot-tooltip')
+      .style('position', 'absolute')
+      .style('pointer-events', 'none')
+      .style('z-index', '20')
+      .style('display', 'none')
+      .style('background', 'rgba(255,255,255,0.97)')
+      .style('border', '1px solid rgba(0,0,0,0.14)')
+      .style('border-radius', '10px')
+      .style('box-shadow', '0 8px 18px rgba(0,0,0,0.14)')
+      .style('padding', '7px 9px')
+      .style('max-width', '260px')
+      .style('font-size', '12px')
+      .style('font-weight', '700')
+      .style('color', 'rgba(0,0,0,0.84)')
+      .style('white-space', 'nowrap')
+      .style('overflow', 'hidden')
+      .style('text-overflow', 'ellipsis')
+
+    const showTooltip = (event: MouseEvent, title: string) => {
+      const box = containerRef.current!.getBoundingClientRect()
+      const px = event.clientX - box.left
+      const py = event.clientY - box.top
+      const gapX = 14
+      const gapY = 12
+
+      tooltip.style('display', 'block').style('visibility', 'hidden').text(title)
+      const tooltipBox = (tooltip.node() as HTMLDivElement).getBoundingClientRect()
+      const tipW = tooltipBox.width
+      const tipH = tooltipBox.height
+
+      let left = px + gapX
+      if (left + tipW > box.width - 8) left = px - tipW - gapX
+      left = Math.max(8, Math.min(left, box.width - tipW - 8))
+
+      let top = py - tipH / 2
+      if (top < 8) top = py + gapY
+      if (top + tipH > box.height - 8) top = py - tipH - gapY
+      top = Math.max(8, Math.min(top, box.height - tipH - 8))
+
+      tooltip.style('visibility', 'visible').style('left', `${left}px`).style('top', `${top}px`)
+    }
 
     const margin: Margin = { top: 24, right: 24, bottom: 34, left: 24 }
     const width = size.width
@@ -250,32 +324,67 @@ export default function McuYearDotPlot() {
 
     for (const b of bins) {
       const cx = xTime(yearToDate(b.year))
+      const yearItems = itemsByYear.get(b.year) ?? { movies: [], shows: [] }
+      const movieData = yearItems.movies.map((title, i) => ({ title, cy: yLine - (i + 1) * dotStep }))
 
       // movies closest to baseline
-      gDots
+      const movieNodes = gDots
         .selectAll(`circle.movie-${b.year}`)
-        .data(d3.range(b.movies))
+        .data(movieData)
         .join('circle')
         .attr('cx', cx)
-        .attr('cy', i => yLine - (i + 1) * dotStep)
+        .attr('cy', d => d.cy)
         .attr('r', dotR)
         .attr('fill', MOVIE_FILL)
         .attr('stroke', 'rgba(0,0,0,0.55)')
         .attr('stroke-width', 1)
+        .style('cursor', 'pointer')
+
+      movieNodes
+        .on('mouseenter', function (event, d) {
+          showTooltip(event as MouseEvent, d.title)
+          d3.select(this).attr('r', dotR + 1.3).attr('stroke-width', 1.5)
+        })
+        .on('mousemove', function (event, d) {
+          showTooltip(event as MouseEvent, d.title)
+        })
+        .on('mouseleave', function () {
+          tooltip.style('display', 'none')
+          d3.select(this).attr('r', dotR).attr('stroke-width', 1)
+        })
 
       // shows above movies, with a small gap between groups
       const showOffset = b.movies > 0 ? b.movies * dotStep + typeGap : 0
-      gDots
+      const showData = yearItems.shows.map((title, i) => ({ title, cy: yLine - showOffset - (i + 1) * dotStep }))
+      const showNodes = gDots
         .selectAll(`path.show-${b.year}`)
-        .data(d3.range(b.shows))
+        .data(showData)
         .join('path')
         .attr('d', showTriangle)
-        .attr('transform', i => `translate(${cx}, ${yLine - showOffset - (i + 1) * dotStep})`)
+        .attr('transform', d => `translate(${cx}, ${d.cy})`)
         .attr('fill', SHOW_FILL)
         .attr('stroke', 'rgba(0,0,0,0.35)')
         .attr('stroke-width', 1)
+        .style('cursor', 'pointer')
+
+      showNodes
+        .on('mouseenter', function (event, d) {
+          showTooltip(event as MouseEvent, d.title)
+          d3.select(this)
+            .attr('transform', `translate(${cx}, ${d.cy}) scale(1.22)`)
+            .attr('stroke-width', 1.5)
+        })
+        .on('mousemove', function (event, d) {
+          showTooltip(event as MouseEvent, d.title)
+        })
+        .on('mouseleave', function (_event, d) {
+          tooltip.style('display', 'none')
+          d3.select(this)
+            .attr('transform', `translate(${cx}, ${d.cy})`)
+            .attr('stroke-width', 1)
+        })
     }
-  }, [bins, yearDomain, size])
+  }, [bins, itemsByYear, yearDomain, size])
 
   return (
     <div
