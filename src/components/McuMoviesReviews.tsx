@@ -43,7 +43,6 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
             const reviewData = await d3.csv("./data/marvel_movies_imdb_reviews.csv");
             let parsedMovies: Movie[] = [];
             let parsedReviews: Review[] = [];
-            console.log(new Date(movieData[0].release_date))
             for (const movie of movieData) {
                 if (movie.title == "The Incredible Hulk") {
                   continue;
