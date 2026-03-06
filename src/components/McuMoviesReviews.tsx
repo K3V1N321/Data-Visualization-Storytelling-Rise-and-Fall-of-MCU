@@ -38,11 +38,12 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
     
     useEffect(() => {
         const loadData = async () => {
-            const movieData = await d3.csv("./data/marvel_movies_tmdb.csv");
+            const movieData = (await d3.csv("./data/marvel_movies_tmdb.csv"))
+            .sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
             const reviewData = await d3.csv("./data/marvel_movies_imdb_reviews.csv");
             let parsedMovies: Movie[] = [];
             let parsedReviews: Review[] = [];
-
+            console.log(new Date(movieData[0].release_date))
             for (const movie of movieData) {
                 if (movie.title == "The Incredible Hulk") {
                   continue;
@@ -84,7 +85,8 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
             setFilteredReviews([]);
         }
         else {
-            const moviesFromSelectedYear = movies.filter((movie) => movie.releaseYear == selectedReviewsYear);
+            const moviesFromSelectedYear = movies.filter((movie) => movie.releaseYear == selectedReviewsYear)
+            .sort((a, b) => a.releaseYear - b.releaseYear);
             const movieTitles = moviesFromSelectedYear.map((movie) => movie.title);
 
             let allFilteredReviews: Review[] = []
@@ -107,13 +109,13 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
           return;
         }
 
-        d3.select("#reviews-containter").selectAll("*").remove();
+        d3.select("#reviews-section-containter").selectAll("*").remove();
 
         generateReviews();
     }, [filteredMovies, filteredReviews, size])
 
     function generateReviews() {
-        const container = d3.select("#reviews-containter");
+        const container = d3.select("#reviews-section-containter");
         let title = "MCU Movies IMDB Reviews";
         if (selectedReviewsYear != null) {
             title = `${selectedReviewsYear} MCU Movies IMDB Reviews`;
@@ -126,6 +128,16 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
         .style("font-weight", 900)
         .text(title);
 
+        container.append("div")
+        .style("font-size", "12px")
+        .html(`Click a point on the line chart to view the movies released that year. 
+            Click a movie to display the top voted IMDB reviews for that movie.
+            Click a review to display the body of the review.
+            `
+        )
+
+
+
         // Container for all reviews
         const reviewsListContainer = container.append("div")
         .attr("id", "reviews-list-container")
@@ -134,8 +146,7 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
         .style("overflow-y", "auto")
         .style("display", "flex")
         .style("flex-direction", "column")
-        .style("gap", "12px")
-        .style("padding-right", "8px");
+        .style("gap", "12px");
 
         // Create blocks for each movie
         const movieElements = reviewsListContainer.selectAll("div.movie-item")
@@ -164,10 +175,9 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
             const reviewTitlesContainer = d3.select(this).select(".movie-review-titles-container");
             if (reviewTitlesContainer.style("display") == "none") {
                 reviewTitlesContainer.raise();
-                reviewTitlesContainer.transition()
-                .duration(300)
-                .ease(d3.easeCubicInOut)
-                .style("display", "block");  
+                reviewTitlesContainer
+                .style("gap", "12px")
+                .style("display", "flex");  
             }
             else {
                 reviewTitlesContainer.lower();
@@ -185,10 +195,9 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
             const reviewTitlesContainers = d3.select(element)        
             .append("div")
             .attr("class", "movie-review-titles-container")
-            .style("width", "100%")
+            .style("width", "90%")
             .style("flex", 1)
             .style("overflow-y", "auto")
-            .style("display", "flex")
             .style("flex-direction", "column")
             .style("display", "none")
             
@@ -203,21 +212,16 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
             .style("border", "2px solid black")
             .style("border-radius", "8px")
             .style("padding", "12px")
-            .style("margin", "8px")
             .style("backgroundColor", "#fafafa")
             .style("display", "block")
             .style("font-size", "13px")
             .html((dataPoint) => `<strong>${dataPoint.reviewTitle}</strong><br/>
-            <strong>${dataPoint.reviewRating}/10</strong>
+            <span>${dataPoint.author}</span>
+            <span style = "margin-left: 20px">${dataPoint.date}</span>
             <br/>
-            <span>
-            Likes: ${dataPoint.likes}
-            </span>
-            <span style = "margin-left: 20px">
-            Dislikes: ${dataPoint.dislikes}
-            </span>
-            <br/>
-            ${dataPoint.date}`)
+            <span>Rating: <strong>${dataPoint.reviewRating}/10</strong></span>
+            <span style = "margin-left: 20px">Likes: ${dataPoint.likes}</span>
+            <span style = "margin-left: 20px">Dislikes: ${dataPoint.dislikes}</span>`)
             // Toggle if body of review is shown
             .on("click", function(event) {
                 event.stopPropagation();
@@ -245,7 +249,7 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
 
     return (
       <>
-          <div ref = {reviewsRef} id = "reviews-containter" style = {{width: "100%", height: "100%", display: "flex", flexDirection: "column"}}>
+          <div ref = {reviewsRef} id = "reviews-section-containter" style = {{width: "100%", height: "100%", display: "flex", flexDirection: "column", gap: "6px"}}>
           </div>
       </>
   )

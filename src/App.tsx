@@ -13,6 +13,7 @@ import McuMoviesReviews from './components/McuMoviesReviews'
 import RatingsProfitScatterPlot from "./components/RatingsProfitScatterPlot";
 import McuConnectionsPhase46 from './components/McuConnectionsPhase46'
 import McuExplorationDashboard from './components/McuExplorationDashboard'
+import McuProfitsLineChart from "./components/McuProfitLineChart";
 
 const theme = createTheme({
   palette: {
@@ -222,9 +223,17 @@ function Layout() {
             </Box>
           </Grid>
           
-          <Grid size = {6} sx = {{height: "100%"}}>
+          <Grid size = {4} sx = {{height: "100%"}}>
             <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", flexDirection: "column"}}>
               <McuMoviesReviews selectedReviewsYear = {selectedReviewsYear}/>
+            </Box>
+          </Grid>
+        </Grid>
+
+        <Grid container spacing = {1} sx = {{width: "100%", height: LINE_CHART_HEIGHT, flex: "0 0 auto"}}>
+          <Grid size = {6} sx = {{height: "100%"}}>
+            <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
+              <McuProfitsLineChart/>
             </Box>
           </Grid>
         </Grid>

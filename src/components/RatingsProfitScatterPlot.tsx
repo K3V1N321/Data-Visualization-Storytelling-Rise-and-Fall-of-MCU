@@ -119,7 +119,7 @@ export default function RatingsProfitScatterPlot({timePeriod}) {
 
         const yAxis = svg.append("g")
         .attr("transform", `translate(${margin.left}, 0)`)
-        .call(d3.axisLeft(yScale));
+        .call(d3.axisLeft(yScale).ticks(6).tickFormat((dataPoint) => `$${Number(dataPoint).toFixed(1)}B`));
 
         // Generate y-axis label
         svg.append("g")

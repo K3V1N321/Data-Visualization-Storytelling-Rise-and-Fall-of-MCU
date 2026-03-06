@@ -9,33 +9,33 @@ type Movie = {
     id: string
     title: string
     releaseYear: number
-    imdbAverageRating: number
+    profit: number
     numberVotes: number
 };
 
-type YearlyRatingData = {
+type YearlyProfitData = {
     year: number
-    averageRating: number
-    maxRating: number
-    minRating: number
+    averageProfit: number
+    maxProfit: number
+    minProfit: number
 }
 
 
-export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear}) {
+export default function McuProfitsLineChart() {
     const lineRef = useRef<HTMLDivElement> (null);
     const margin: Margin = { top: 45, right: 40, bottom: 40, left: 60 }
     const [size, setSize] = useState<ComponentSize>({width: 0, height: 0});
     const onResize = useDebounceCallback((size: ComponentSize) => setSize(size), 200);
     const [movies, setMovies] = useState<Movie[]>([]);
-    const container = d3.select("#average-ratings-container");
-    const svg = d3.select("#average-ratings-svg");
-    const ratingCapWidth = 10;
+    const container = d3.select("#average-profits-container");
+    const svg = d3.select("#average-profits-svg");
+    const profitCapWidth = 10;
 
     // Tooltip for points
-    const tooltipElement = container.selectChild("#average-ratings-tooltip")
+    const tooltipElement = container.selectChild("#average-profits-tooltip")
     if (tooltipElement.empty()) {
         container.append("div")
-        .attr('id', 'average-ratings-tooltip')
+        .attr('id', 'average-profits-tooltip')
         .style('position', 'absolute')
         .style('pointer-events', 'none')
         .style('z-index', '20')
@@ -72,7 +72,7 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
                     id: dataPoint.id,
                     title: dataPoint.title,
                     releaseYear: Number(dataPoint.release_date.split("-")[0]),
-                    imdbAverageRating: Number(dataPoint.imdb_average_rating),
+                    profit: (Number(dataPoint.revenue) - Number(dataPoint.budget)) / 100000000,
                     numberVotes: Number(dataPoint.imdb_vote_count)
                 }
                 moviesData.push(movieData);
@@ -91,21 +91,21 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
             return;
         }
         
-        d3.select("#average-ratings-svg").selectAll("*").remove();
+        d3.select("#average-profits-svg").selectAll("*").remove();
 
         generateLineChart();
     }, [movies, size]);
 
     function generateLineChart() {
-        let formattedData: YearlyRatingData[] = [];
+        let formattedData: YearlyProfitData[] = [];
         const years = [... new Set(movies.map((movie) => movie.releaseYear))].sort((a, b) => a - b);
         for (const year of years) {
             const yearMovies = movies.filter((movie) => movie.releaseYear == year);
-            const dataPoint: YearlyRatingData = {
+            const dataPoint: YearlyProfitData = {
                 year: year,
-                averageRating: d3.mean(yearMovies, (dataPoint) => dataPoint.imdbAverageRating),
-                maxRating: d3.max(yearMovies, (dataPoint) => dataPoint.imdbAverageRating),
-                minRating: d3.min(yearMovies, (dataPoint) => dataPoint.imdbAverageRating),
+                averageProfit: d3.mean(yearMovies, (dataPoint) => dataPoint.profit),
+                maxProfit: d3.max(yearMovies, (dataPoint) => dataPoint.profit),
+                minProfit: d3.min(yearMovies, (dataPoint) => dataPoint.profit),
 
             };
             formattedData.push(dataPoint);
@@ -136,24 +136,24 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
         .style("font-size", `${normalTextFontSize}px`);
 
         const yScale = d3.scaleLinear()
-        .domain([5, d3.max(formattedData.map((dataPoint) => dataPoint.maxRating))])
+        .domain([d3.min(formattedData.map((dataPoint) => dataPoint.minProfit)) - 0.5, d3.max(formattedData.map((dataPoint) => dataPoint.maxProfit))])
         .range([size.height - margin.bottom, margin.top]);
 
         const yAxis = svg.append("g")
         .attr("transform", `translate(${margin.left}, 0)`)
-        .call(d3.axisLeft(yScale));
+        .call(d3.axisLeft(yScale).ticks(6).tickFormat((dataPoint) => `$${Number(dataPoint).toFixed(1)}B`));
 
         // Generte y-axis label
         svg.append("g")
-        .attr("transform", `translate(${margin.left / 2}, ${margin.top + ((size.height - margin.top - margin.bottom) / 2)}) rotate(-90)`)
+        .attr("transform", `translate(${margin.left / 5}, ${margin.top + ((size.height - margin.top - margin.bottom) / 2)}) rotate(-90)`)
         .append("text")
-        .text("Average IMDB Rating")
+        .text("Profit (Billion $)")
         .attr("text-anchor", "middle")
         .style("font-size", `${normalTextFontSize}px`);
 
         const lineGenerator = d3.line()
         .x((dataPoint) => xScale(dataPoint.year) + xScale.bandwidth() / 2)
-        .y((dataPoint => yScale(dataPoint.averageRating)))
+        .y((dataPoint => yScale(dataPoint.averageProfit)))
 
         const pathContainer = svg.append("g")
         .attr("id", "path-container");
@@ -166,50 +166,50 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
         .attr("d", lineGenerator);
 
         const pointsContainer = svg.append("g")
-        .attr("id", "average-rating-points-container")
+        .attr("id", "average-profit-points-container")
 
         const yearPointsContainers = pointsContainer.selectAll("g")
         .data(formattedData)
         .enter()
         .append("g")
-        .attr("id", (dataPoint) => `${dataPoint.year}-ratings-range-container`)
-        .attr("class", "ratings-range-container");
+        .attr("id", (dataPoint) => `${dataPoint.year}-profits-range-container`)
+        .attr("class", "profits-range-container");
 
 
-        // Dotted line to show rating range
+        // Dotted line to show profit range
         yearPointsContainers.append("line")
         .attr("stroke", "black")
         .attr("stroke-width", 1)
         .attr("x1", (dataPoint) => xScale(dataPoint.year) + xScale.bandwidth() / 2)
-        .attr("y1", (dataPoint) => yScale(dataPoint.minRating))
+        .attr("y1", (dataPoint) => yScale(dataPoint.minProfit))
         .attr("x2", (dataPoint) => xScale(dataPoint.year) + xScale.bandwidth() / 2)
-        .attr("y2", (dataPoint) => yScale(dataPoint.maxRating))
+        .attr("y2", (dataPoint) => yScale(dataPoint.maxProfit))
         .style("stroke-dasharray", ("3, 3"));
 
-        // Min rating caps
+        // Min profit caps
         yearPointsContainers.append("line")
         .attr("stroke", "black")
         .attr("stroke-width", 1)
-        .attr("x1", (dataPoint) => xScale(dataPoint.year) + (xScale.bandwidth() / 2) - (ratingCapWidth / 2))
-        .attr("y1", (dataPoint) => yScale(dataPoint.minRating))
-        .attr("x2", (dataPoint) => xScale(dataPoint.year) + (xScale.bandwidth() / 2) + (ratingCapWidth / 2))
-        .attr("y2", (dataPoint) => yScale(dataPoint.minRating))
+        .attr("x1", (dataPoint) => xScale(dataPoint.year) + (xScale.bandwidth() / 2) - (profitCapWidth / 2))
+        .attr("y1", (dataPoint) => yScale(dataPoint.minProfit))
+        .attr("x2", (dataPoint) => xScale(dataPoint.year) + (xScale.bandwidth() / 2) + (profitCapWidth / 2))
+        .attr("y2", (dataPoint) => yScale(dataPoint.minProfit))
 
-        // Max rating caps
+        // Max profit caps
         yearPointsContainers.append("line")
         .attr("stroke", "black")
         .attr("stroke-width", 1)
-        .attr("x1", (dataPoint) => xScale(dataPoint.year) + (xScale.bandwidth() / 2) - (ratingCapWidth / 2))
-        .attr("y1", (dataPoint) => yScale(dataPoint.maxRating))
-        .attr("x2", (dataPoint) => xScale(dataPoint.year) + (xScale.bandwidth() / 2) + (ratingCapWidth / 2))
-        .attr("y2", (dataPoint) => yScale(dataPoint.maxRating))
+        .attr("x1", (dataPoint) => xScale(dataPoint.year) + (xScale.bandwidth() / 2) - (profitCapWidth / 2))
+        .attr("y1", (dataPoint) => yScale(dataPoint.maxProfit))
+        .attr("x2", (dataPoint) => xScale(dataPoint.year) + (xScale.bandwidth() / 2) + (profitCapWidth / 2))
+        .attr("y2", (dataPoint) => yScale(dataPoint.maxProfit))
 
         
 
         yearPointsContainers.append("circle")
-        .attr("id", (dataPoint) => `average-rating-${dataPoint.year}`)
+        .attr("id", (dataPoint) => `average-profit-${dataPoint.year}`)
         .attr("cx", (dataPoint) => xScale(dataPoint.year) + xScale.bandwidth() / 2)
-        .attr("cy", (dataPoint) => yScale(dataPoint.averageRating))
+        .attr("cy", (dataPoint) => yScale(dataPoint.averageProfit))
         .attr("r", pointRadius)
         .attr("stroke", "black")
         .attr("stroke-width", pointStrokeWidth)
@@ -225,55 +225,29 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
             .attr("r", pointRadius + 3)
             .attr("stroke-width", pointStrokeWidth + 2);
 
-            d3.select("#average-ratings-tooltip")
-            .html(`Max: ${dataPoint.maxRating.toFixed(2)}<br/>Average:${dataPoint.averageRating.toFixed(2)}<br/>Min: ${dataPoint.minRating.toFixed(2)}`)
+            d3.select("#average-profits-tooltip")
+            .html(`Max: $${dataPoint.maxProfit.toFixed(2)}B<br/>Average:$${dataPoint.averageProfit.toFixed(2)}B<br/>Min: $${dataPoint.minProfit.toFixed(2)}B`)
             .style("left", `${event.pageX + 10}px`)
             .style("top", `${event.pageY - 10}px`)
             .style("opacity", 1)
             .style("visibility", "visible");
         })
         .on("mousemove", function(event) {
-            d3.select("#average-ratings-tooltip")
+            d3.select("#average-profits-tooltip")
             .style("left", `${event.pageX + 10}px`)
             .style("top", `${event.pageY - 10}px`)
         })
         .on("mouseout", function(event, dataPoint) {
-            if (dataPoint.year != selectedReviewsYear) {
-                d3.select(this)
-                .transition()
-                .duration(300)
-                .ease(d3.easeCubicInOut)
-                .attr("r", pointRadius)
-                .attr("stroke-width", pointStrokeWidth)
-            }
-            d3.select("#average-ratings-tooltip")
+            d3.select(this)
+            .transition()
+            .duration(300)
+            .ease(d3.easeCubicInOut)
+            .attr("r", pointRadius)
+            .attr("stroke-width", pointStrokeWidth)
+
+            d3.select("#average-profits-tooltip")
             .style("opacity", 0)
             .style("visibility", "hidden");
-        })
-        .on("click", function(event, dataPoint) {
-            if (selectedReviewsYear == dataPoint.year) {
-                selectedReviewsYear = null;
-                setReviewsYear(null);
-                d3.select(this)
-                .transition()
-                .duration(300)
-                .ease(d3.easeCubicInOut)
-                .attr("r", pointRadius)
-                .attr("stroke-width", pointStrokeWidth)
-            }
-            else {
-                if (selectedReviewsYear != null) {
-                    d3.select(`#average-rating-${selectedReviewsYear}`)
-                    .transition()
-                    .duration(300)
-                    .ease(d3.easeCubicInOut)
-                    .attr("r", pointRadius)
-                    .attr("stroke-width", pointStrokeWidth)
-                }
-                selectedReviewsYear = dataPoint.year;
-                setReviewsYear(dataPoint.year);
-            }
-            
         })
 
         // Generate title
@@ -283,14 +257,14 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
         .style("text-anchor", "middle")
         .style("font-size", '15px')
         .style("font-weight", 900)
-        .text("Average IMDB Rating Over Time"); 
+        .text("Average Profit Over Time"); 
 
     }
 
     return (
         <>
-            <div ref = {lineRef} id = "average-ratings-container" style = {{width: "100%", height: "100%"}}>
-                <svg id = "average-ratings-svg" width = "100%" height = "100%"></svg>
+            <div ref = {lineRef} id = "average-profits-container" style = {{width: "100%", height: "100%"}}>
+                <svg id = "average-profits-svg" width = "100%" height = "100%"></svg>
             </div>
         </>
     )
