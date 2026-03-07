@@ -184,12 +184,11 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
             }
         })
         
-
         // Loop through each movie block
         for (const element of movieElements) {
             const title = d3.select(element).data()[0]["title"];
-            const movieReviews = filteredReviews.filter((review) => review.movie == title);
-
+            const movieReviews = filteredReviews.filter((review) => review.movie == title).sort((a, b) => a.reviewRating - b.reviewRating);
+            console.log(movieReviews)
             // Container for review title blocks
             const reviewTitlesContainers = d3.select(element)        
             .append("div")

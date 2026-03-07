@@ -14,7 +14,7 @@ import RatingsProfitScatterPlot from "./components/RatingsProfitScatterPlot";
 import McuConnectionsPhase46 from './components/McuConnectionsPhase46'
 import McuExplorationDashboard from './components/McuExplorationDashboard'
 import McuProfitsLineChart from "./components/McuProfitLineChart";
-import McuRiseNarration from "./components/McuRiseNarration";
+import McuNarration from "./components/McuNarration";
 
 const theme = createTheme({
   palette: {
@@ -84,6 +84,7 @@ function Layout() {
             </Box>
           </Grid>
         </Grid>
+        <McuNarration section = {"introduction"}/>
 
         <h1>Rise of MCU</h1>
 
@@ -124,7 +125,7 @@ function Layout() {
             </Box>
           </Grid>
         </Grid>
-        <McuRiseNarration section = {"connections"}/>
+        <McuNarration section = {"connections"}/>
 
         {/* ===== BOTTOM PANEL (FUTURE VIEWS) ===== */}
         <Grid container spacing = {1} sx = {{width: "50%", height: BAR_CHART_HEIGHT, flex: "0 0 auto"}}>
@@ -134,7 +135,7 @@ function Layout() {
             </Box>
           </Grid>
         </Grid>
-        <McuRiseNarration section = {"box office"}/>
+        <McuNarration section = {"box office"}/>
         
         <h1>Fall of MCU</h1>
         <Grid container spacing = {1} sx = {{width: "50%", height: BAR_CHART_HEIGHT, flex: "0 0 auto"}}>
@@ -144,6 +145,7 @@ function Layout() {
             </Box>
           </Grid>
         </Grid>
+        <McuNarration section = {"box office fall"}/>
 
         {/* ✅ ===== DOT PLOT PANEL (AFTER REVENUE) ===== */}
         <Grid container spacing={1} sx={{ height: DOT_PLOT_HEIGHT, flex: '0 0 auto' }}>
@@ -169,6 +171,7 @@ function Layout() {
             </Box>
           </Grid>
         </Grid>
+        <McuNarration section = {"oversaturation"}/>
 
         <Grid
           container
@@ -207,28 +210,28 @@ function Layout() {
             </Box>
           </Grid>
         </Grid>
+        <McuNarration section = {"connection barriers"}/>
 
         <Grid container spacing = {1} sx = {{width: "100%", height: LINE_CHART_HEIGHT, flex: "0 0 auto"}}>
-          <Grid size = {6} sx = {{height: "100%"}}>
+          <Grid size = {4} sx = {{height: "100%"}}>
             <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
                 <McuRatingsLineChart selectedReviewsYear = {selectedReviewsYear} setReviewsYear = {setReviewsYear}/>
             </Box>
           </Grid>
-          
+
           <Grid size = {4} sx = {{height: "100%"}}>
+            <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
+              <McuProfitsLineChart/>
+            </Box>
+          </Grid>
+          
+          <Grid size = {3} sx = {{height: "100%"}}>
             <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", flexDirection: "column"}}>
               <McuMoviesReviews selectedReviewsYear = {selectedReviewsYear}/>
             </Box>
           </Grid>
         </Grid>
-
-        <Grid container spacing = {1} sx = {{width: "100%", height: LINE_CHART_HEIGHT, flex: "0 0 auto"}}>
-          <Grid size = {6} sx = {{height: "100%"}}>
-            <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
-              <McuProfitsLineChart/>
-            </Box>
-          </Grid>
-        </Grid>
+        <McuNarration section = {"inconsistency"}/>
 
         {/* <Grid container spacing = {1} sx = {{width: "100%", height: SCATTER_PLOT_HEIGHT, flex: "0 0 auto"}}>
           <Grid size = {4} sx = {{height: "100%"}}>
