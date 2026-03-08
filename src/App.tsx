@@ -29,7 +29,7 @@ function Layout() {
   const CONNECTION_PHASE46_HEIGHT = 560
   const BAR_CHART_HEIGHT = 400
   const DOT_PLOT_HEIGHT = 380
-  const LINE_CHART_HEIGHT = 400
+  const LINE_CHART_HEIGHT = 300
   const SCATTER_PLOT_HEIGHT = 400
 
   const [selectedReviewsYear, setReviewsYear] = useState<Number | null>(null);  
@@ -211,27 +211,31 @@ function Layout() {
           </Grid>
         </Grid>
         <McuNarration section = {"connection barriers"}/>
+        
 
-        <Grid container spacing = {1} sx = {{width: "100%", height: LINE_CHART_HEIGHT, flex: "0 0 auto"}}>
-          <Grid size = {4} sx = {{height: "100%"}}>
-            <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
-                <McuRatingsLineChart selectedReviewsYear = {selectedReviewsYear} setReviewsYear = {setReviewsYear}/>
-            </Box>
-          </Grid>
+        <Box sx = {{width: "75%", height: LINE_CHART_HEIGHT * 2 + 10, flex: "0 0 auto", bgcolor: "#fafafa", border: "1px solid #e0e0e0", borderRadius: 2, p: 2}}>
+          <Grid container columnSpacing = {2} sx = {{height: "100%"}}>
+            <Grid size = {7} sx = {{display: "flex", flexDirection: "column", gap: 2}}>
 
-          <Grid size = {4} sx = {{height: "100%"}}>
-            <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
-              <McuProfitsLineChart/>
-            </Box>
+                <Box sx = {{width: "100%", height: LINE_CHART_HEIGHT, display: "flex", justifyContent: "center", bgcolor: "#ffffff", borderRadius: 1, boxShadow: "0 4px 12px rgba(0,0,0,0.08)"}}>
+                    <McuRatingsLineChart selectedReviewsYear = {selectedReviewsYear} setReviewsYear = {setReviewsYear}/>
+                </Box>
+                <Box sx = {{width: "100%", height: LINE_CHART_HEIGHT, display: "flex", justifyContent: "center", bgcolor: "#ffffff", borderRadius: 1, boxShadow: "0 4px 12px rgba(0,0,0,0.08)"}}>
+                  <McuProfitsLineChart/>
+                </Box>
+            </Grid>
+            
+            <Grid size = {5} sx = {{height: "100%"}}>
+              <Box sx = {{width: "100%", height: "100%", display: "flex", flexDirection: "column"}}>
+                <McuMoviesReviews selectedReviewsYear = {selectedReviewsYear}/>
+              </Box>
+            </Grid>
           </Grid>
-          
-          <Grid size = {3} sx = {{height: "100%"}}>
-            <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", flexDirection: "column"}}>
-              <McuMoviesReviews selectedReviewsYear = {selectedReviewsYear}/>
-            </Box>
-          </Grid>
-        </Grid>
+        </Box>
         <McuNarration section = {"inconsistency"}/>
+
+        <h1>Conclusion</h1>
+        <McuNarration section = {"conclusion"}/>
 
         {/* <Grid container spacing = {1} sx = {{width: "100%", height: SCATTER_PLOT_HEIGHT, flex: "0 0 auto"}}>
           <Grid size = {4} sx = {{height: "100%"}}>

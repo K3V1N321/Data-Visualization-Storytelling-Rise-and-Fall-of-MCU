@@ -96,6 +96,38 @@ export default function McuProfitsLineChart() {
         generateLineChart();
     }, [movies, size]);
 
+    function highlightPoints(year) {
+        d3.select(`#average-rating-${year}`)
+        .transition()
+        .duration(300)
+        .ease(d3.easeCubicInOut)
+        .attr("r", pointRadius + 3)
+        .attr("stroke-width", pointStrokeWidth + 2);
+    
+        d3.select(`#average-profit-${year}`)
+        .transition()
+        .duration(300)
+        .ease(d3.easeCubicInOut)
+        .attr("r", pointRadius + 3)
+        .attr("stroke-width", pointStrokeWidth + 2);
+    }
+    
+    function resetHighlightedPoints(year) {
+        d3.select(`#average-rating-${year}`)
+        .transition()
+        .duration(300)
+        .ease(d3.easeCubicInOut)
+        .attr("r", pointRadius)
+        .attr("stroke-width", pointStrokeWidth);
+    
+        d3.select(`#average-profit-${year}`)
+        .transition()
+        .duration(300)
+        .ease(d3.easeCubicInOut)
+        .attr("r", pointRadius)
+        .attr("stroke-width", pointStrokeWidth);
+    }
+
     function generateLineChart() {
         let formattedData: YearlyProfitData[] = [];
         const years = [... new Set(movies.map((movie) => movie.releaseYear))].sort((a, b) => a - b);
@@ -130,7 +162,7 @@ export default function McuProfitsLineChart() {
 
         // Generate x-axis label
         svg.append("g")
-        .attr("transform", `translate(${margin.left + ((size.width - margin.left - margin.right) / 2)}, ${size.height})`)
+        .attr("transform", `translate(${margin.left + ((size.width - margin.left - margin.right) / 2)}, ${size.height - margin.bottom / 5})`)
         .append("text")
         .text("Year")
         .style("font-size", `${normalTextFontSize}px`);
@@ -172,7 +204,7 @@ export default function McuProfitsLineChart() {
         .data(formattedData)
         .enter()
         .append("g")
-        .attr("id", (dataPoint) => `${dataPoint.year}-profits-range-container`)
+        .attr("id", (dataPoint) => `profits-range-container-${dataPoint.year}`)
         .attr("class", "profits-range-container");
 
 
@@ -207,6 +239,7 @@ export default function McuProfitsLineChart() {
         
 
         yearPointsContainers.append("circle")
+        .attr("class", "point")
         .attr("id", (dataPoint) => `average-profit-${dataPoint.year}`)
         .attr("cx", (dataPoint) => xScale(dataPoint.year) + xScale.bandwidth() / 2)
         .attr("cy", (dataPoint) => yScale(dataPoint.averageProfit))
@@ -218,12 +251,7 @@ export default function McuProfitsLineChart() {
             d3.select(this)
             .style("cursor", "pointer");
 
-            d3.select(this)
-            .transition()
-            .duration(300)
-            .ease(d3.easeCubicInOut)
-            .attr("r", pointRadius + 3)
-            .attr("stroke-width", pointStrokeWidth + 2);
+            highlightPoints(dataPoint.year);
 
             d3.select("#average-profits-tooltip")
             .html(`Max: $${dataPoint.maxProfit.toFixed(2)}B<br/>Average:$${dataPoint.averageProfit.toFixed(2)}B<br/>Min: $${dataPoint.minProfit.toFixed(2)}B`)
@@ -238,12 +266,9 @@ export default function McuProfitsLineChart() {
             .style("top", `${event.pageY - 10}px`)
         })
         .on("mouseout", function(event, dataPoint) {
-            d3.select(this)
-            .transition()
-            .duration(300)
-            .ease(d3.easeCubicInOut)
-            .attr("r", pointRadius)
-            .attr("stroke-width", pointStrokeWidth)
+            if (d3.select(this).attr("class") == "point") {
+                resetHighlightedPoints(dataPoint.year)
+            }
 
             d3.select("#average-profits-tooltip")
             .style("opacity", 0)

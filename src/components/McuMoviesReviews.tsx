@@ -129,10 +129,9 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
 
         container.append("div")
         .style("font-size", "12px")
-        .html(`Click a point on the line chart to view the movies released that year. 
+        .html(`Click a point on the average ratings line chart to view the movies released that year. 
             Click a movie to display the top voted IMDB reviews for that movie.
-            Click a review to display the body of the review.
-            `
+            Click a review to display the body of the review.`
         )
 
 
@@ -158,13 +157,13 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
         .style("border", "2px solid black")
         .style("border-radius", "8px")
         .style("padding", "12px")
-        .style("backgroundColor", "#fafafa")
+        .style("background-color", "#ffffff")
         .style("display", "block")
         .style("font-size", '13px')
         .html((dataPoint) => `<strong>${dataPoint.title}</strong>
-        <span style = "margin-left: 20px;">
-        Average Rating: <strong>${dataPoint.imdbAverageRating}/10</strong>
-        </span>`)
+        <br/>
+        Rating: <strong>${dataPoint.imdbAverageRating}/10</strong>
+        `)
         .on("mouseover", function(event) {
             d3.select(this)
             .style("cursor", "pointer");
@@ -187,8 +186,7 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
         // Loop through each movie block
         for (const element of movieElements) {
             const title = d3.select(element).data()[0]["title"];
-            const movieReviews = filteredReviews.filter((review) => review.movie == title).sort((a, b) => a.reviewRating - b.reviewRating);
-            console.log(movieReviews)
+            const movieReviews = filteredReviews.filter((review) => review.movie == title);
             // Container for review title blocks
             const reviewTitlesContainers = d3.select(element)        
             .append("div")
@@ -210,7 +208,7 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
             .style("border", "2px solid black")
             .style("border-radius", "8px")
             .style("padding", "12px")
-            .style("backgroundColor", "#fafafa")
+            .style("background-color", "#ffffff")
             .style("display", "block")
             .style("font-size", "13px")
             .html((dataPoint) => `<strong>${dataPoint.reviewTitle}</strong><br/>

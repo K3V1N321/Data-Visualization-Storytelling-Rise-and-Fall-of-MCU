@@ -96,6 +96,38 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
         generateLineChart();
     }, [movies, size]);
 
+    function highlightPoints(year) {
+        d3.select(`#average-rating-${year}`)
+        .transition()
+        .duration(300)
+        .ease(d3.easeCubicInOut)
+        .attr("r", pointRadius + 3)
+        .attr("stroke-width", pointStrokeWidth + 2);
+    
+        d3.select(`#average-profit-${year}`)
+        .transition()
+        .duration(300)
+        .ease(d3.easeCubicInOut)
+        .attr("r", pointRadius + 3)
+        .attr("stroke-width", pointStrokeWidth + 2);
+    }
+    
+    function resetHighlightedPoints(year) {
+        d3.select(`#average-rating-${year}`)
+        .transition()
+        .duration(300)
+        .ease(d3.easeCubicInOut)
+        .attr("r", pointRadius)
+        .attr("stroke-width", pointStrokeWidth);
+    
+        d3.select(`#average-profit-${year}`)
+        .transition()
+        .duration(300)
+        .ease(d3.easeCubicInOut)
+        .attr("r", pointRadius)
+        .attr("stroke-width", pointStrokeWidth);
+    }
+
     function generateLineChart() {
         let formattedData: YearlyRatingData[] = [];
         const years = [... new Set(movies.map((movie) => movie.releaseYear))].sort((a, b) => a - b);
@@ -130,7 +162,7 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
 
         // Generate x-axis label
         svg.append("g")
-        .attr("transform", `translate(${margin.left + ((size.width - margin.left - margin.right) / 2)}, ${size.height})`)
+        .attr("transform", `translate(${margin.left + ((size.width - margin.left - margin.right) / 2)}, ${size.height - (margin.bottom / 5)})`)
         .append("text")
         .text("Year")
         .style("font-size", `${normalTextFontSize}px`);
@@ -172,7 +204,7 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
         .data(formattedData)
         .enter()
         .append("g")
-        .attr("id", (dataPoint) => `${dataPoint.year}-ratings-range-container`)
+        .attr("id", (dataPoint) => `ratings-range-container-${dataPoint.year}`)
         .attr("class", "ratings-range-container");
 
 
@@ -207,6 +239,7 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
         
 
         yearPointsContainers.append("circle")
+        .attr("class", "point")
         .attr("id", (dataPoint) => `average-rating-${dataPoint.year}`)
         .attr("cx", (dataPoint) => xScale(dataPoint.year) + xScale.bandwidth() / 2)
         .attr("cy", (dataPoint) => yScale(dataPoint.averageRating))
@@ -218,33 +251,29 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
             d3.select(this)
             .style("cursor", "pointer");
 
-            d3.select(this)
-            .transition()
-            .duration(300)
-            .ease(d3.easeCubicInOut)
-            .attr("r", pointRadius + 3)
-            .attr("stroke-width", pointStrokeWidth + 2);
+            highlightPoints(dataPoint.year);
 
+
+            // Show ratings tooltip
             d3.select("#average-ratings-tooltip")
-            .html(`Max: ${dataPoint.maxRating.toFixed(2)}<br/>Average:${dataPoint.averageRating.toFixed(2)}<br/>Min: ${dataPoint.minRating.toFixed(2)}`)
+            .html(`Max: ${dataPoint.maxRating.toFixed(2)}
+            <br/>
+            Average: ${dataPoint.averageRating.toFixed(2)}
+            <br/>
+            Min: ${dataPoint.minRating.toFixed(2)}`)
             .style("left", `${event.pageX + 10}px`)
             .style("top", `${event.pageY - 10}px`)
             .style("opacity", 1)
             .style("visibility", "visible");
         })
-        .on("mousemove", function(event) {
+        .on("mousemove", function(event, dataPoint) {
             d3.select("#average-ratings-tooltip")
             .style("left", `${event.pageX + 10}px`)
             .style("top", `${event.pageY - 10}px`)
         })
         .on("mouseout", function(event, dataPoint) {
-            if (dataPoint.year != selectedReviewsYear) {
-                d3.select(this)
-                .transition()
-                .duration(300)
-                .ease(d3.easeCubicInOut)
-                .attr("r", pointRadius)
-                .attr("stroke-width", pointStrokeWidth)
+            if (d3.select(this).attr("class") == "point") {
+                resetHighlightedPoints(dataPoint.year);
             }
             d3.select("#average-ratings-tooltip")
             .style("opacity", 0)
@@ -252,24 +281,24 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
         })
         .on("click", function(event, dataPoint) {
             if (selectedReviewsYear == dataPoint.year) {
+                // Reset rating and profit points to not be selected
+                d3.select(this).attr("class", "point")
+                d3.select(`#average-profit-${dataPoint.year}`).attr("class", "point")
+                resetHighlightedPoints(dataPoint.year)
                 selectedReviewsYear = null;
                 setReviewsYear(null);
-                d3.select(this)
-                .transition()
-                .duration(300)
-                .ease(d3.easeCubicInOut)
-                .attr("r", pointRadius)
-                .attr("stroke-width", pointStrokeWidth)
             }
             else {
                 if (selectedReviewsYear != null) {
-                    d3.select(`#average-rating-${selectedReviewsYear}`)
-                    .transition()
-                    .duration(300)
-                    .ease(d3.easeCubicInOut)
-                    .attr("r", pointRadius)
-                    .attr("stroke-width", pointStrokeWidth)
+                    // Reset rating and profit points to not be selected
+                    d3.select(`#average-rating-${selectedReviewsYear}`).attr("class", "point")
+                    d3.select(`#average-profit-${selectedReviewsYear}`).attr("class", "point")
+                    resetHighlightedPoints(selectedReviewsYear)
                 }
+                // Set rating and profit points to be selected
+                d3.select(this).attr("class", "point-selected");
+                d3.select(`#average-profit-${dataPoint.year}`).attr("class", "point-selected");
+                highlightPoints(dataPoint.year);
                 selectedReviewsYear = dataPoint.year;
                 setReviewsYear(dataPoint.year);
             }
