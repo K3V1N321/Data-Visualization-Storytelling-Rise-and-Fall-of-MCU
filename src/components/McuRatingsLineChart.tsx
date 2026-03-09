@@ -236,8 +236,6 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
         .attr("x2", (dataPoint) => xScale(dataPoint.year) + (xScale.bandwidth() / 2) + (ratingCapWidth / 2))
         .attr("y2", (dataPoint) => yScale(dataPoint.maxRating))
 
-        
-
         yearPointsContainers.append("circle")
         .attr("class", "point")
         .attr("id", (dataPoint) => `average-rating-${dataPoint.year}`)
@@ -304,6 +302,85 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
             }
             
         })
+
+        const data2018 = formattedData.find((dataPoint) => dataPoint.year == 2018);
+        const data2019 = formattedData.find((dataPoint) => dataPoint.year == 2019);
+        const data2021 = formattedData.find((dataPoint) => dataPoint.year == 2021);
+
+        const x2018 = xScale(2018) + xScale.bandwidth() / 2;
+        const x2020 = xScale(2020) + xScale.bandwidth() / 2;
+    
+        const y2018 = yScale(data2018.averageRating);
+        const yMax2018 = yScale(data2018.maxRating);
+        const y2019 = yScale(data2019.averageRating);
+        const y2021 = yScale(data2021.averageRating);
+        const yMiddle = y2019 + (y2021 - y2019) / 2;
+
+        const annotationGroup = svg.append("g").attr("id", "ratings-chart-annotations");
+
+        // Point to start of inconsistent quality
+        annotationGroup.append("line")
+        .attr("x1", x2018 - 60)
+        .attr("y1", y2018 + 80)
+        .attr("x2", x2018)
+        .attr("y2", y2018 + 5)
+        .attr("stroke", "#999")
+        .attr("stroke-width", 1);
+
+        // Label start of inconsistent quality
+        annotationGroup.append("text")
+        .attr("x", x2018 - 65)
+        .attr("y", y2018 + 85)
+        .style("text-anchor", "middle")
+        .style("font-size", "8px")
+        .append("tspan")
+        .attr("x", x2018 - 65)
+        .attr("dy", "0")
+        .text("Start of")
+        .append("tspan")
+        .attr("x", x2018 - 65)
+        .attr("dy", "1.2em")
+        .text("inconsistency");
+
+        // Label Marvel's release of 2 biggest movies
+        annotationGroup.append("text")
+        .attr("x", x2018 + 8)
+        .attr("y", yMax2018 - 15)
+        .attr("text-anchor", "middle")
+        .style("font-size", "8px")
+        .append("tspan")
+        .attr("x", x2018 + 8)
+        .attr("dy", "0")
+        .text("Released 2")
+        .append("tspan")
+        .attr("x", x2018 + 8)
+        .attr("dy", "1.2em")
+        .text("biggest movies");
+        
+        // Point to start of Marvel's fall
+        annotationGroup.append("line")
+        .attr("x1", x2020)
+        .attr("y1", yMiddle)
+        .attr("x2", x2020)
+        .attr("y2", yMiddle + 70)
+        .attr("stroke", "#999")
+        .attr("stroke-width", 1);
+
+        // Label start of Marvel's fall
+        annotationGroup.append("text")
+        .attr("x", x2020)
+        .attr("y", yMiddle + 80)
+        .attr("text-anchor", "middle")
+        .style("font-size", "8px")
+        .append("tspan")
+        .attr("x", x2020)
+        .attr("dy", 0)
+        .text("Beginning")
+        .append("tspan")
+        .attr("x", x2020)
+        .attr("dy", "1.2em")
+        .text("of fall");
+
 
         // Generate title
         const title = svg.append('g')

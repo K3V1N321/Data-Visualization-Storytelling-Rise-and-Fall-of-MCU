@@ -401,7 +401,7 @@ export default function McuExplorationDashboard() {
 
           const posterPath = String(row.poster_path ?? '').trim()
           return {
-            id: `show-${row.imdb_id || index}`,
+            id: `show-${row.id || index}`,
             title,
             phase,
             mediaType: 'show',
@@ -413,7 +413,7 @@ export default function McuExplorationDashboard() {
             budget: null,
             profit: null,
             posterUrl: posterPath ? `${TMDB_POSTER_BASE}${posterPath}` : null,
-            overview: '',
+            overview: String(row.overview ?? '').trim(),
             important: false
           }
         })
@@ -671,7 +671,6 @@ export default function McuExplorationDashboard() {
 
     return out
   }, [entries, maxYear, minYear, yearSpan, TIMELINE_TYPE_GAP_UNITS])
-
   const updateTimelineHover = (event: React.MouseEvent, title: string) => {
     const box = timelineRef.current?.getBoundingClientRect()
     if (!box) return

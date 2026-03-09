@@ -283,7 +283,7 @@ export default function RevenueBarChart({timePeriod}) {
             const defs = svg.append("defs")
             // Define arrowhead
             defs.append("marker")
-            .attr("id", `${timePeriod}-arrowhead`)
+            .attr("class", `${timePeriod}-arrowhead`)
             .attr("viewBox", "0 0 10 10")
             .attr("refX", 5)
             .attr("refY", 5)

@@ -143,8 +143,9 @@ function inconsistencyNarration() {
                 The line chart showing the average IMDB rating of MCU movies over time and the range of ratings each year shows that after 2019 there was a drop in average rating, signifying a drop in quality, and a wider range of ratings each year, signifying more inconsistent quality.
                 While large range of ratings started appearing in 2018, the performance of movies did not significantly worsen until 2021.
                 In fact, the second line chart, which displays the change in average profit of MCU movies over time, shows that a significant drop in profit did not occur until 2021.
-                A reason for this is that in 2018 and 2019, Marvel released execeptionally high-performing movies, particulary <cite>Avengers: Infinity War</cite> and <cite>Avengers: Endgame</cite>, which helped offset the weaker movies.
-                After 2019, Marvel has not released any exceptionally good movies, so the inconsistency of releasing bad to average movies has had a more significant impact on the overall performance of MCU movies.
+                A reason for this is that in 2018 and 2019, Marvel released two of its most successful movies, particulary <cite>Avengers: Infinity War</cite> and <cite>Avengers: Endgame</cite>, which helped offset the weaker movies.
+                After 2019, Marvel has not released any exceptionally good movies, with the exception of <cite>Spider-Man: No Way Home</cite>.
+                Therefore, the inconsistency of releasing bad to average movies has had a more significant impact on the overall performance of MCU movies.
             </p>
             <p style = {{marginTop: "12px"}}>
                 The inconsistent movie quality has clearly hurt ratings and profit, but it has also impacted fan perception of MCU movies.
