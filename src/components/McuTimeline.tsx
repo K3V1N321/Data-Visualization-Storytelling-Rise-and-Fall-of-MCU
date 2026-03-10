@@ -758,6 +758,16 @@ export default function McuTimeline() {
       .style('font-size', '12px')
       .style('fill', 'rgba(0,0,0,0.75)')
       .text(d => d.label)
+
+    svg
+      .append('text')
+      .attr('x', width - margin.right - 5)
+      .attr('y', height - margin.bottom + 14)
+      .style('text-anchor', 'end')
+      .style('font-size', '11px')
+      .style('font-weight', 500)
+      .style('fill', 'rgba(0,0,0,0.45)')
+      .text('Hover over the dot to see the name and poster of the individual movie')
   }, [movies, phaseRanges, size])
 
   return (

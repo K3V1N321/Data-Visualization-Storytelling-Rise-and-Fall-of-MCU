@@ -590,6 +590,21 @@ export default function McuConnections() {
       <div
         style={{
           position: 'absolute',
+          top: 10,
+          left: 18,
+          zIndex: 20,
+          fontSize: 11,
+          fontWeight: 400,
+          letterSpacing: '0.01em',
+          color: 'rgba(0,0,0,0.45)'
+        }}
+      >
+        Hover over the dot to highlight related movies
+      </div>
+
+      <div
+        style={{
+          position: 'absolute',
           top: 46,
           right: 10,
           zIndex: 30,

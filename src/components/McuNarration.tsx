@@ -7,6 +7,9 @@ function introduction() {
                 However, in recent years, many audiences have started asking: "Is the MCU falling off?"
                 While discussions often mention box office numbers, inconsistent ratings, and "superhero fatigue," they are often based on opinion rather than data.
                 To answer why it feels like the MCU has been falling off and if this feeling is supported by concrete data, we will be analyzing the MCU during their rise and then during their fall.
+                <br /><br />
+                The following timeline displays an overview  of MCU movies from 2008 to 2026 with important movies highlighted with annotations, and categorized by the phase of the MCU they belong to. 
+                
             </p>
             <p style = {{marginTop: "12px"}}>
                 The MCU's rise occurred during Phase 1 through Phase 3, spanning from 2008 to 2019, having peaked in 2019.
@@ -28,7 +31,7 @@ function connectionsNarration() {
             </p>
             <ul style = {{marginTop: "12px"}}>
                 <li>Direct sequel: The next movie in a series that continues the story of the previous movie.</li>
-                <li>Crossover: A movie whose main characters are the main characters of different movie series.</li>
+                <li>Crossover: A movie where main characters from different MCU movie series appear together and play major roles in the story. (mainly Avengers movies)</li>
                 <li>Carryover: A movie that continues some aspects of the story of a previous movie from a different series.</li>
             </ul>
             <p style = {{marginTop: "12px"}}>
@@ -40,12 +43,17 @@ function connectionsNarration() {
                 This was an effective strategy to attract fans to watch movies, since regardless of the story or other aspects of the movie, the superhero being focused on is already a main attraction for many fans.
             </p>
             <p style = {{marginTop: "12px"}}>
-                The connections that make MCU movies stand out are the crossover and carryover connections.
-                Most movies tell their stories in a single movie or throughout a movie series, which is typically about 3 movies.
-                Rather than only telling a story across a few movies, Marvel told 1 large overarching story throughout Phase 1 to Phase 3, which consisted of 21 movies.
-                This strategy helped build anticipation among fans for every new movie, since each movie contributed to the overarching story and built up to the climax.
-                The crossover movies, which are the series of Avengers movies and <cite>Captain America: Civil War</cite>, were highlights of the MCU movies.
-                These movies not only starred multiple popular superheroes but they also focused the most on the overarching story.
+                The connections that make MCU movies stand out are the crossover and carryover relationships. Most movies tell their stories within a single film or within a small series, 
+                which is usually around three movies. Instead of limiting the story to a single series, Marvel built one large overarching narrative that spanned Phase 1 through Phase 3, covering 21 movies.
+                <br /><br />
+                This approach helped build anticipation among fans for each new release, since every movie contributed to the larger story and gradually built toward a major climax.
+                 The crossover movies, such as the Avengers films and Captain America: Civil War became some of the biggest highlights and climax of the MCU. These films bring together heroes 
+                 from different series and focus heavily on the central storyline of the universe.
+                <br /><br />
+                Carryover connections also play an important role in maintaining continuity between movies. Events, characters, or story developments from one series often continue in another series, 
+                allowing the story to progress across multiple films rather than being confined to a single franchise. A good example is the consequence of events and conflict between Iron Man and 
+                Captain America in Avengers: Age of Ultron directly leads to the story of Captain America: Civil War. Together, crossover and carryover connections help create the feeling that all 
+                MCU movies are part of the same interconnected universe.
             </p>
 
         </>
