@@ -128,8 +128,9 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
         .text(title);
 
         container.append("div")
-        .style("font-size", "12px")
-        .html(`Click a point on the average ratings line chart to view the movies released that year. 
+        .style("font-size", "11px")
+        .style("color", "rgba(0, 0, 0, 0.62)")
+        .html(`Click a point on ratings or profit line chart to view the movies released that year. 
             Click a movie to display the top voted IMDB reviews for that movie.
             Click a review to display the body of the review.`
         )
@@ -154,10 +155,11 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
         .attr("class", "movie-item")
         .style("width", "100%")
         .style("box-sizing", "border-box")
-        .style("border", "2px solid black")
+        .style("border", "1px solid rgba(0, 0, 0, 0.14)")
         .style("border-radius", "8px")
         .style("padding", "12px")
         .style("background-color", "#ffffff")
+        .style("box-shadow", "0 1px 4px rgba(0, 0, 0, 0.04)")
         .style("display", "block")
         .style("font-size", '13px')
         .html((dataPoint) => `<strong>${dataPoint.title}</strong>
@@ -195,6 +197,7 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
             .style("flex", 1)
             .style("overflow-y", "auto")
             .style("flex-direction", "column")
+            .style("margin-top", "10px")
             .style("display", "none")
             
             // Create review title block for each review
@@ -205,10 +208,11 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
             .attr("class", "review-title-item")
             .style("width", "100%")
             .style("box-sizing", "border-box")
-            .style("border", "2px solid black")
+            .style("border", "1px solid rgba(0, 0, 0, 0.12)")
             .style("border-radius", "8px")
             .style("padding", "12px")
-            .style("background-color", "#ffffff")
+            .style("background-color", "#fcfcfc")
+            .style("box-shadow", "0 1px 3px rgba(0, 0, 0, 0.03)")
             .style("display", "block")
             .style("font-size", "13px")
             .html((dataPoint) => `<strong>${dataPoint.reviewTitle}</strong><br/>

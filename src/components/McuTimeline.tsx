@@ -759,15 +759,21 @@ export default function McuTimeline() {
       .style('fill', 'rgba(0,0,0,0.75)')
       .text(d => d.label)
 
-    svg
+    const hint = svg
       .append('text')
-      .attr('x', width - margin.right - 5)
-      .attr('y', height - margin.bottom + 14)
-      .style('text-anchor', 'end')
-      .style('font-size', '11px')
+      .attr('x', margin.left)
+      .attr('y', margin.top + 2)
+      .style('text-anchor', 'start')
+      .style('font-size', '11.5px')
       .style('font-weight', 500)
-      .style('fill', 'rgba(0,0,0,0.45)')
-      .text('Hover over the dot to see the name and poster of the individual movie')
+      .style('fill', 'rgba(0,0,0,0.58)')
+
+    hint.append('tspan').attr('x', margin.left).attr('dy', 0).text('Hover over the dot to see')
+    hint
+      .append('tspan')
+      .attr('x', margin.left)
+      .attr('dy', '1.15em')
+      .text('the name and poster')
   }, [movies, phaseRanges, size])
 
   return (

@@ -206,6 +206,26 @@ export default function McuYearDotPlot() {
     const x0 = margin.left
     const x1 = width - margin.right
 
+    svg
+      .append('text')
+      .attr('x', width / 2)
+      .attr('y', margin.top)
+      .style('text-anchor', 'middle')
+      .style('font-size', '16px')
+      .style('font-weight', 900)
+      .style('fill', 'rgba(0,0,0,0.9)')
+      .text('Number of MCU Movies and Shows Releases by Year')
+
+    svg
+      .append('text')
+      .attr('x', x0)
+      .attr('y', margin.top + 80)
+      .style('text-anchor', 'start')
+      .style('font-size', '11px')
+      .style('font-weight', 500)
+      .style('fill', 'rgba(0,0,0,0.55)')
+      .text('Hover over the dot to see the title')
+
     // Put the baseline low-ish but leave space for labels
     const yLine = height - margin.bottom - 10
     const yYearLabel = yLine + 22
@@ -236,17 +256,12 @@ export default function McuYearDotPlot() {
       .attr('stroke-width', 3)
       .attr('stroke-linecap', 'round')
 
-    // --- year ticks/labels (auto-downsample so it doesn’t crowd)
+    // --- year ticks/labels
     const years = bins.map(d => d.year)
     const minYear = d3.min(years) ?? yearDomain.minYear
     const maxYear = d3.max(years) ?? yearDomain.maxYear
 
-    const approxLabelCount = Math.floor((x1 - x0) / 60)
-    const yearStep = Math.max(1, Math.ceil((maxYear - minYear + 1) / Math.max(1, approxLabelCount)))
-
-    const tickYears: number[] = d3.range(minYear, maxYear + 1)
-    for (let y = minYear; y <= maxYear; y += yearStep) tickYears.push(y)
-    if (tickYears[tickYears.length - 1] !== maxYear) tickYears.push(maxYear)
+    const tickYears = d3.range(minYear, maxYear + 1)
 
     // tick marks
     svg
@@ -281,7 +296,7 @@ export default function McuYearDotPlot() {
     const MOVIE_FILL = 'rgba(255, 204, 0, 0.95)'
     const SHOW_FILL = MOVIE_FILL
 
-    const legend = svg.append('g').attr('transform', `translate(${x0}, ${margin.top})`)
+    const legend = svg.append('g').attr('transform', `translate(${x0}, ${margin.top + 40})`)
     const legendItems = [
       { label: 'Movies', fill: MOVIE_FILL, stroke: 'rgba(0,0,0,0.45)', shape: 'circle' as const },
       { label: 'TV Shows', fill: SHOW_FILL, stroke: 'rgba(0,0,0,0.35)', shape: 'triangle' as const }

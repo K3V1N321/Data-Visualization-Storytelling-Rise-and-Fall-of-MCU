@@ -44,6 +44,28 @@ function Layout() {
       }}
     >
       <Stack spacing={5} sx={{ width: '100%' }}>
+        <Box
+          sx={{
+            width: '100%',
+            textAlign: 'center',
+            pt: 1,
+            pb: 1
+          }}
+        >
+          <Box
+            component="h1"
+            sx={{
+              m: 0,
+              fontSize: '1.5rem',
+              fontWeight: 900,
+              letterSpacing: '0.01em',
+              color: 'rgba(0,0,0,0.88)'
+            }}
+          >
+            Rise and Decline of the MCU
+          </Box>
+        </Box>
+
         {/* ===== TIMELINE PANEL (TOP) ===== */}
         <Grid
           container
@@ -86,7 +108,9 @@ function Layout() {
         </Grid>
         <McuNarration section = {"introduction"}/>
 
-        <h1>Rise of MCU</h1>
+        <h2>Rise of MCU</h2>
+
+        <h3>Interconnected Storytelling</h3>
 
        {/* ===== CONNECTIONS PANEL ===== */}
         <Grid
@@ -127,6 +151,7 @@ function Layout() {
         </Grid>
         <McuNarration section = {"connections"}/>
 
+        <h3>Global Appeal and Box Office Success</h3>
         {/* ===== BOTTOM PANEL (FUTURE VIEWS) ===== */}
         <Grid container spacing = {1} sx = {{width: "50%", height: BAR_CHART_HEIGHT, flex: "0 0 auto"}}>
           <Grid sx = {{width: "100%", height: "100%"}}>
@@ -137,7 +162,7 @@ function Layout() {
         </Grid>
         <McuNarration section = {"box office"}/>
         
-        <h1>Fall of MCU</h1>
+        <h2>Decline of MCU</h2>
         <Grid container spacing = {1} sx = {{width: "50%", height: BAR_CHART_HEIGHT, flex: "0 0 auto"}}>
           <Grid sx = {{width: "100%", height: "100%"}}>
             <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
@@ -147,6 +172,7 @@ function Layout() {
         </Grid>
         <McuNarration section = {"box office fall"}/>
 
+        <h3>Oversaturation of MCU Movies and Shows</h3>
         {/* ✅ ===== DOT PLOT PANEL (AFTER REVENUE) ===== */}
         <Grid container spacing={1} sx={{ height: DOT_PLOT_HEIGHT, flex: '0 0 auto' }}>
           <Grid item xs={12} sx={{ height: '100%' }}>
@@ -173,6 +199,7 @@ function Layout() {
         </Grid>
         <McuNarration section = {"oversaturation"}/>
 
+        <h3>"Lack" of Interconnection in Recent Phases</h3>
         <Grid
           container
           spacing={1}
@@ -213,6 +240,7 @@ function Layout() {
         <McuNarration section = {"connection barriers"}/>
         
 
+        <h3>Inconsistent Quality</h3>
         <Box sx = {{width: "75%", height: LINE_CHART_HEIGHT * 2 + 10, flex: "0 0 auto", bgcolor: "#fafafa", border: "1px solid #e0e0e0", borderRadius: 2, p: 2}}>
           <Grid container columnSpacing = {2} sx = {{height: "100%"}}>
             <Grid size = {7} sx = {{display: "flex", flexDirection: "column", gap: 2}}>
@@ -221,7 +249,7 @@ function Layout() {
                     <McuRatingsLineChart selectedReviewsYear = {selectedReviewsYear} setReviewsYear = {setReviewsYear}/>
                 </Box>
                 <Box sx = {{width: "100%", height: LINE_CHART_HEIGHT, display: "flex", justifyContent: "center", bgcolor: "#ffffff", borderRadius: 1, boxShadow: "0 4px 12px rgba(0,0,0,0.08)"}}>
-                  <McuProfitsLineChart/>
+                  <McuProfitsLineChart selectedReviewsYear = {selectedReviewsYear} setReviewsYear = {setReviewsYear}/>
                 </Box>
             </Grid>
             
@@ -234,22 +262,8 @@ function Layout() {
         </Box>
         <McuNarration section = {"inconsistency"}/>
 
-        <h1>Conclusion</h1>
+        <h2>Conclusion</h2>
         <McuNarration section = {"conclusion"}/>
-
-        {/* <Grid container spacing = {1} sx = {{width: "100%", height: SCATTER_PLOT_HEIGHT, flex: "0 0 auto"}}>
-          <Grid size = {4} sx = {{height: "100%"}}>
-            <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
-              <RatingsProfitScatterPlot timePeriod = "early"/>
-            </Box>
-          </Grid>
-          
-          <Grid size = {4} sx = {{height: "100%"}}>
-            <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", flexDirection: "center"}}>
-              <RatingsProfitScatterPlot timePeriod = "recent"/>
-            </Box>
-          </Grid>
-        </Grid> */}
 
         <Grid
           container

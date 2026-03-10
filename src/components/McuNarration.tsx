@@ -2,20 +2,21 @@ function introduction() {
     return (
         <>
             <p>
-                For over a decade, the Marvel Cinematic Universe (MCU) dominated blockbuster cinema.
-                From the release of <cite>Iron Man</cite> in 2008 to <cite>Avengers: Endgame</cite> in 2019, Marvel built an interconnected franchise that was not only financially successful but also culturally influential.
-                However, in recent years, many audiences have started asking: "Is the MCU falling off?"
-                While discussions often mention box office numbers, inconsistent ratings, and "superhero fatigue," they are often based on opinion rather than data.
-                To answer why it feels like the MCU has been falling off and if this feeling is supported by concrete data, we will be analyzing the MCU during their rise and then during their fall.
+                For over a decade, the Marvel Cinematic Universe (MCU) dominated blockbuster cinema. From the release of <cite>Iron Man</cite> in 2008 to <cite>Avengers: Endgame</cite> in 2019, 
+                Marvel built an interconnected franchise that was not only financially successful but also culturally influential. 
+                However, in recent years, many audiences have begun asking: “Is the MCU falling off?” While discussions about the MCU’s decline often mention box office numbers, 
+                inconsistent ratings, and “superhero fatigue,” these claims are frequently based on personal opinions rather than systematic analysis.
                 <br /><br />
-                The following timeline displays an overview  of MCU movies from 2008 to 2026 with important movies highlighted with annotations, and categorized by the phase of the MCU they belong to. 
+                To better understand whether the MCU is truly declining and why it may feel that way, we analyze data from both the rise and the recent fall of the MCU. 
+                By examining financial performance, release patterns, and structural changes in the franchise, we can evaluate whether these perceptions are supported by concrete evidence.
+                <br /><br />
+                The timeline below provides an overview of MCU movies released from 2008 to 2026. Important films are highlighted with annotations, and each movie is categorized by the MCU phase it belongs to. 
                 
             </p>
             <p style = {{marginTop: "12px"}}>
-                The MCU's rise occurred during Phase 1 through Phase 3, spanning from 2008 to 2019, having peaked in 2019.
-                The MCU's fall has been ongoing since the start of Phase 4 in 2021.
-                To explain why the MCU was so sucessful, we will analyze financial and structural trends during its rise.
-                Then, we will explain why the MCU has been declining by analyzing the trends of recent movies.
+                The MCU’s rise occurred during Phase 1 through Phase 3, spanning from 2008 to 2019 and peaking with <cite>Avengers: Endgame</cite> in 2019. 
+                Since the start of Phase 4 in 2021, however, the MCU has shown signs of decline. To understand this shift, we first analyze the financial and structural factors that contributed to the MCU’s early success. 
+                We then examine recent trends to explain why the performance of MCU movies has weakened in recent years.
             </p>
         </>
     )
@@ -64,15 +65,15 @@ function boxOfficeNarration() {
     return (
         <>
             <p>
-                The stacked bar chart above displays, for each year from 2008 to 2019, the total revenue of the top 10 highest-grossing movies and the portion of that revenue contributed by MCU movies.
-                A key takeaway from this stacked bar chart is that in most of these years MCU movies not only made it to the top 10 but also contributed a decent amount to the total revenue.
-                This shows that MCU movies were some of the most high quality movies released these years.
-                Furthermore, the revenue contribution from MCU movies generally increased throughout the years and peaked in 2019, supporting the idea that the MCU was rising during this period and peaked in 2019.
+                A key reason for the success of MCU movies is that Marvel’s marketing strategy and movie format were effective not only in the United States but also globally. 
+                By creating blockbuster superhero films and consistently promoting them worldwide, Marvel was able to attract audiences from many different countries. 
+                This global appeal allowed MCU movies to reach a much larger audience and generate high revenues internationally.
             </p>
             <p style = {{marginTop: "12px"}}>
-                This stacked bar chart shows that a reason for the success of MCU movies is that MCU movies appealed to fans worldwide, meaning Marvel's marketing strategy and movie format were successful in both the United States and gloablly. 
-                This global appeal is depcited by the fact that the stacked bar chart uses worldwide revenue and MCU movies had such high revenues in the chart.
-                By appealing to fans worldwide, MCU movies were able to attract a larger audience, which helped bring more people to watch their movies.
+                The stacked bar chart supports this idea by displaying, for each year from 2008 to 2019, the total revenue of the top 10 highest-grossing movies and the portion 
+                of that revenue contributed by MCU movies. Since the chart uses worldwide box office revenue, it reflects the global popularity of these films. In most of these years, 
+                MCU movies not only appeared in the top 10 but also contributed a significant portion of the total revenue. The chart also shows that the revenue contribution from MCU movies 
+                generally increased over time and peaked in 2019.
             </p>
         </>
     )
@@ -82,14 +83,17 @@ function boxOfficeFallNarration() {
     return (
         <>
             <p>
-                A major sign supporting the fall of the MCU is the drop in box office performance of MCU movies.
-                The stacked bar chart above is similar to the previous one, but it now goes from 2008 to 2025.
+                After 2019, the performance of MCU movies begins to decline. One major sign of this decline is the drop in the global box office performance of MCU movies. 
+                The stacked bar chart shows the contribution of MCU movies to the total revenue of the top 10 highest-grossing movies each year from 2008 to 2025.
             </p>
             <p style = {{marginTop: "12px"}}>
-                The main takeaway of this stcked bar chart is that after Marvel's peak performance in 2019, the contribution of MCU movies has declined each year.
-                This drop in box office performance means that fewer people have been paying to watch MCU movies, which is a sign that recent MCU movies have been less appealing to fans.
-                Also, the smaller contribution of MCU movies after 2019 suggests that they have been unable to compete with other movies as strongly as they did at their peak.
-                This could signify that recent MCU movies have dropped in quality, relative to their competition.
+                A key takeaway from the chart is that after Marvel’s peak in 2019, the contribution of MCU movies steadily declines in the following years. Notably, 
+                in 2023 and 2024 the contribution of MCU movies becomes relatively small, similar to the early years of the MCU. In 2025, none of the MCU movies appear 
+                in the top 10 highest-grossing films, even though three MCU movies were released that year.
+                <br /><br />
+                This drop in box office performance suggests that fewer people are paying to watch MCU movies, indicating that recent MCU films may be less appealing to audiences. 
+                In the following section, we analyze several possible reasons behind this decline, including oversaturation of Marvel content, "lack" of connection in recent Marvel stories, 
+                and inconsistent movie quality.
             </p>
         </>
     )
@@ -99,15 +103,18 @@ function oversaturationNarration() {
     return (
         <>
             <p>
-                The dot plot above displays all Marvel movies and TV shows that have been relesed each year from 2008 to 2026.
-                This dot plot highlights that after 2019, Marvel has been releasing about double the amount of content as before, as shown by the desnser distribution from 2021 to 2026, due to the addition of TV shows. 
+                The dot plot above displays all Marvel movies and TV shows released each year from 2008 to 2026. The plot highlights that after 2019, Marvel 
+                began releasing roughly double the amount of content compared to earlier years. This can be seen from the much denser distribution of dots between 2021 and 2026, 
+                which is largely due to the addition of multiple TV shows. 
             </p>
             <p style = {{marginTop: "12px"}}>
-                An increase in the amount content can sometimes benefit a franchise by helping to keep the audience engaged with the material.
-                In the case of MCU movies, this increase in content led to an oversturation of Marvel content, contributing to "superhero fatigue", where the overwhelming amount of content caused audiences to lose interest.
-                A key factor contributing to this is that from 2017 to 2019, only 3 MCU movies were released each year, with even fewer in earlier years.
-                The limited amount of Marvel content each each year made each movie feel more special and increased fans' excitment for each movie, since they knew they would have to wait a while for the next release.
-                In recent years, the abundance of Marvel content made each new release feel less exciting and contributed to the growing fatigue among audiences.
+                Increasing the amount of content can sometimes benefit a franchise by helping keep audiences engaged. However, in the case of the MCU, the increase in content 
+                led to an oversaturation of Marvel releases, contributing to what is often called “superhero fatigue,” where audiences become overwhelmed by the large volume of similar 
+                content and gradually lose interest.
+                <br /><br />
+                A key factor behind this effect is the contrast with earlier years of the MCU. From 2017 to 2019, only three MCU movies were released each year, with even fewer releases in earlier phases. 
+                This relatively limited number of releases made each movie feel more special and increased fans’ excitement, since audiences had to wait longer between releases. In recent years, however, 
+                the abundance of Marvel content has made each new release feel less significant, which may have contributed to the growing fatigue among audiences.
             </p>
         </>
     )
@@ -117,25 +124,28 @@ function connectionBarriersNarration() {
     return (
         <>
         <p>
-            We mentioned previously that one of the main factors that helped make MCU movies succssful was how connected the movies were.
-            The timeline above shows connections between all MCU movies and TV shows released in Phase 4 to Phase 6, once again categorized as a direct sequel, a crossover, or a carryover.
+            As mentioned earlier, one of the key factors behind the success of early MCU movies was how strongly the films were connected to one another. The timeline above shows the connections between all 
+            MCU movies and TV shows released in Phase 4 to Phase 6, categorized as direct sequels, crossovers, and carryover connections.
         </p>
         <p style = {{marginTop: "12px"}}>
-            Although recent MCU content remains interconnected, a major change since 2021 is that many of these connections now occur between TV shows and movies.
-            This type of connection has created a barrier for audiences, making it more difficult to watch all Marvel content. 
-            Marvel's TV shows are only watchable through Disney's subscription service, Disney+.
-            This adds an additional cost for audiences to watch all Marvel content, since they now need to pay for both the movies and a Disney+ subscription.
-            Furthermore, if the audience is only interested in Marvel content, it becomes harder to justify paying for a Disney+ subscription to only access a small portion of the service.
-            Essentially, Marvel's release of TV shows has created a financial barrier that limits audiences access to Marvel content.
+            In the previous connection diagram, we saw that movies in Phase 1 to Phase 3 were highly interconnected. In contrast, there are far fewer connections directly between movies 
+            in Phase 4 to Phase 6. While the diagram still shows a reasonable number of connections overall, many of them now occur between TV shows and movies rather than between movies themselves.
+            <br /><br />
+            This shift creates a barrier for audiences who want to follow the MCU storyline. Marvel’s TV shows are primarily available through Disney’s subscription service, Disney+. 
+            As a result, viewers who want to fully follow the interconnected story may need to pay for both movie tickets and a Disney+ subscription. For audiences who are only interested in Marvel content, 
+            it may be difficult to justify paying for a subscription service just to watch a small portion of its content. In this way, the expansion of MCU storytelling into TV shows introduces a financial 
+            barrier that limits some audiences’ access to the full story.
         </p>
         <p>
-            Since Phase 4, there has only been 1 conection between 2 movies, which is a crossover between the <cite>Black Widow </cite> and <cite>Thunderbolts*</cite> movies.
-            The lack of connections between movies reduces interest in future movies, since the interconnected storyline between movies was a major factor that contributed to audience interest in early MCU movies.
-            In recent years, that interconnected experience has primarily required watching TV shows, which some fans may not have access to.
+            Since Phase 4 began, there has only been one direct connection between two movies: a crossover between <cite>Black Widow</cite> and <cite>Thunderbolts</cite>. The lack of strong movie-to-movie connections may reduce excitement 
+            for future films, since the interconnected storyline between movies was one of the main factors that attracted audiences during the early phases of the MCU.
         </p>
         <p style = {{marginTop: "12px"}}>
-            Also, Marvel's storytelling carries over accross movies and TV shows, so missing any piece of Marvel content can make it difficult for audiences to fully understand the story of a specific movie.
-            The finacial barrier to watch Marvel content, combined with the drastic increase in Marvel content, has made it more difficult and time-consuming for audiences to follow and enjoy the story, reducing interest in new movies.
+            In addition, Marvel’s storytelling now frequently carries across both movies and TV shows. Missing even one piece of content can make it harder for audiences to fully understand the story of a movie. 
+            For viewers who only watch MCU movies in theaters, important plot points may appear in TV shows that they have not seen, which can lead to confusion and a less enjoyable viewing experience.
+            <br /><br />
+            Combined with the large increase in Marvel content, this financial and narrative barrier makes it more difficult and time-consuming for audiences to follow the MCU storyline, 
+            which may contribute to declining interest in newer MCU movies.
         </p>
         </>
     )
@@ -145,24 +155,28 @@ function inconsistencyNarration() {
     return (
         <>
             <p>
-                Lastly, a key reason why recent MCU movies have not been performing as well is due to their inconsistent quality. 
+                Lastly, a key reason why recent MCU movies have not performed as well is their inconsistent quality of the recent movies.
+                The inconsistent movie quality is a direct consequence of the oversaturation of content, as Marvel has been releasing more movies and shows with less time and resources to ensure high quality.
             </p>
             <p style = {{marginTop: "12px"}}>
-                The line chart showing the average IMDB rating of MCU movies over time and the range of ratings each year shows that after 2019 there was a drop in average rating, signifying a drop in quality, and a wider range of ratings each year, signifying more inconsistent quality.
-                While large range of ratings started appearing in 2018, the performance of movies did not significantly worsen until 2021.
-                In fact, the second line chart, which displays the change in average profit of MCU movies over time, shows that a significant drop in profit did not occur until 2021.
-                A reason for this is that in 2018 and 2019, Marvel released two of its most successful movies, particulary <cite>Avengers: Infinity War</cite> and <cite>Avengers: Endgame</cite>, which helped offset the weaker movies.
-                After 2019, Marvel has not released any exceptionally good movies, with the exception of <cite>Spider-Man: No Way Home</cite>.
-                Therefore, the inconsistency of releasing bad to average movies has had a more significant impact on the overall performance of MCU movies.
+                The line chart showing the average IMDb rating of MCU movies over time, along with the range of ratings each year, suggests that movie quality has become both lower and more inconsistent after 2019. 
+                The chart shows a drop in the average rating as well as a wider range of ratings, indicating that some movies are rated much lower than others. 
+                Although larger variations in ratings began appearing around 2018, the negative impact on movie performance did not become clear until 2021.
+                <br /><br />
+                This trend is supported by the second line chart, which shows the change in the average profit of MCU movies over time. 
+                The chart indicates that a noticeable drop in profit also begins around 2021. One reason for the delay is that in 2018 and 2019 Marvel released 
+                two of its most successful films: <cite>Avengers: Infinity War</cite> and <cite>Avengers: Endgame</cite>. These highly successful movies helped offset weaker films released during that period. 
+                After 2019, however, Marvel has not released many exceptionally well-received movies, with <cite>Spider-Man: No Way Home</cite> being a notable exception. 
+                As a result, the release of several average or poorly received movies has had a greater impact on the overall performance of the MCU.
             </p>
             <p style = {{marginTop: "12px"}}>
-                The inconsistent movie quality has clearly hurt ratings and profit, but it has also impacted fan perception of MCU movies.
-                When analyzing the top IMDB reviews of early MCU movies, both positive and negative reviews tended to have close to equal numbers of likes and dislikes.
-                This sugggests that reactions were more balanced, and the audience was more unified, broadly agreeing on the quality of movies.
-                After 2019, more top reviews, whether positive or negative, have significantly more likes than dislikes.
-                This pattern indicates that the audience has become more polarized, and there is now a large group of viewers who dislike recent MCU movies.
-                A divided audience makes it more difficult for a MCU movie to receive widespread praise, reinforcing the sentiment that MCU movies have worsened.
-                As a result, the overall performance of MCU movies has worsened in recent years.
+                Inconsistent quality has not only affected ratings and profit but has also influenced fan perception of MCU movies. 
+                When examining the top IMDb reviews of recent MCU movies, many reviews frequently complain about the quality of the films, especially for movies with lower ratings. 
+                Common criticisms include weaker storytelling, less engaging characters, and a feeling that some movies are rushed or poorly written.
+                <br /><br />
+                These recurring complaints suggest that audiences have become more dissatisfied with recent MCU movies. As more viewers express concerns about the quality of new releases, 
+                it becomes harder for new MCU films to generate the same excitement and positive reception that earlier MCU movies received. 
+                This negative perception further contributes to the decline in the overall performance of MCU movies in recent years.
             </p>
         </>
     )
@@ -172,10 +186,14 @@ function conclusion() {
     return (
         <>
             <p>
-                MCU movies have in fact fallen off in recent years.
-                Factors such as oversaturation, barriers to watch Marvel content, and inconsistent quality have significantly contributed to the MCU's decline.
-                These issues weakened some of the main contributors to the MCU's success: a consistent release of high-quality movies with broad appeal and the interconnected storytelling between movies.
-                The MCU has lost its dominance in the film industry, but it still has the potential to reclaim that position in the future.
+                In recent years, the MCU has clearly experienced a decline in performance. Factors such as oversaturation of content, "lack" of connections between Marvel stories, 
+                and inconsistent movie quality have all contributed to this downturn. These issues weakened some of the core elements that originally made the MCU successful, such as
+                a steady release of high-quality films with broad global appeal and a strongly interconnected storyline that kept audiences invested across multiple movies. 
+                As these strengths diminished, audience interest and box office performance also began to decline.
+                <br /><br />
+                Although the MCU has lost some of its dominance in the film industry, the franchise still has the potential to recover. 
+                By focusing on higher-quality storytelling, reducing content oversaturation, and strengthening connections between movies, 
+                Marvel may be able to rebuild audience excitement and restore the success that defined the earlier phases of the MCU.
             </p>
         </>
     )

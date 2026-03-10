@@ -20,8 +20,12 @@ type YearlyProfitData = {
     minProfit: number
 }
 
+type McuProfitsLineChartProps = {
+    selectedReviewsYear: Number | null
+    setReviewsYear: (year: Number | null) => void
+}
 
-export default function McuProfitsLineChart() {
+export default function McuProfitsLineChart({selectedReviewsYear, setReviewsYear}: McuProfitsLineChartProps) {
     const lineRef = useRef<HTMLDivElement> (null);
     const margin: Margin = { top: 45, right: 40, bottom: 40, left: 60 }
     const [size, setSize] = useState<ComponentSize>({width: 0, height: 0});
@@ -96,7 +100,7 @@ export default function McuProfitsLineChart() {
         generateLineChart();
     }, [movies, size]);
 
-    function highlightPoints(year) {
+    function highlightPoints(year: number) {
         d3.select(`#average-rating-${year}`)
         .transition()
         .duration(300)
@@ -112,7 +116,7 @@ export default function McuProfitsLineChart() {
         .attr("stroke-width", pointStrokeWidth + 2);
     }
     
-    function resetHighlightedPoints(year) {
+    function resetHighlightedPoints(year: number) {
         d3.select(`#average-rating-${year}`)
         .transition()
         .duration(300)
@@ -274,6 +278,28 @@ export default function McuProfitsLineChart() {
             .style("opacity", 0)
             .style("visibility", "hidden");
         })
+        .on("click", function(event, dataPoint) {
+            if (selectedReviewsYear == dataPoint.year) {
+                d3.select(this).attr("class", "point");
+                d3.select(`#average-rating-${dataPoint.year}`).attr("class", "point");
+                resetHighlightedPoints(dataPoint.year);
+                selectedReviewsYear = null;
+                setReviewsYear(null);
+            }
+            else {
+                if (selectedReviewsYear != null) {
+                    d3.select(`#average-profit-${selectedReviewsYear}`).attr("class", "point");
+                    d3.select(`#average-rating-${selectedReviewsYear}`).attr("class", "point");
+                    resetHighlightedPoints(selectedReviewsYear);
+                }
+
+                d3.select(this).attr("class", "point-selected");
+                d3.select(`#average-rating-${dataPoint.year}`).attr("class", "point-selected");
+                highlightPoints(dataPoint.year);
+                selectedReviewsYear = dataPoint.year;
+                setReviewsYear(dataPoint.year);
+            }
+        })
 
         const data2018 = formattedData.find((dataPoint) => dataPoint.year == 2018);
         const data2019 = formattedData.find((dataPoint) => dataPoint.year == 2019);
@@ -379,11 +405,23 @@ export default function McuProfitsLineChart() {
         // Generate title
         const title = svg.append('g')
         .append("text")
-        .attr("transform", `translate(${margin.left + ((size.width - margin.left) / 2)}, ${margin.top - titleGraphPadding})`)
+        .attr("transform", `translate(${margin.left + ((size.width - margin.left) / 2)}, ${margin.top - titleGraphPadding + 10})`)
         .style("text-anchor", "middle")
         .style("font-size", '15px')
         .style("font-weight", 900)
-        .text("Average Profit Over Time"); 
+        .text("Average MCU Movie Profit Over Time"); 
+
+        const hint = svg.append("text")
+        .attr("x", margin.left + 20)
+        .attr("y", margin.top + 40)
+        .style("text-anchor", "start")
+        .style("font-size", "10px")
+        .style("font-weight", 500)
+        .style("fill", "rgba(0,0,0,0.55)");
+
+        hint.append("tspan").attr("x", margin.left + 20).attr("dy", 0).text("Hover over the dot for max, min")
+        hint.append("tspan").attr("x", margin.left + 20).attr("dy", "1.15em").text("and average profit")
+        hint.append("tspan").attr("x", margin.left + 20).attr("dy", "1.15em").text("Click the dot to view reviews")
 
     }
 

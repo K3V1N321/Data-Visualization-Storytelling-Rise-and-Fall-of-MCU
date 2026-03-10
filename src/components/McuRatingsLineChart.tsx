@@ -52,6 +52,7 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
     
 
     const titleGraphPadding = 30;
+    const plotTopPadding = 12;
     const normalTextFontSize = 13;
     const pointRadius = 5;
     const pointStrokeWidth  = 1.5;
@@ -169,7 +170,7 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
 
         const yScale = d3.scaleLinear()
         .domain([5, d3.max(formattedData.map((dataPoint) => dataPoint.maxRating))])
-        .range([size.height - margin.bottom, margin.top]);
+        .range([size.height - margin.bottom, margin.top + plotTopPadding]);
 
         const yAxis = svg.append("g")
         .attr("transform", `translate(${margin.left}, 0)`)
@@ -177,7 +178,7 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
 
         // Generte y-axis label
         svg.append("g")
-        .attr("transform", `translate(${margin.left / 2}, ${margin.top + ((size.height - margin.top - margin.bottom) / 2)}) rotate(-90)`)
+        .attr("transform", `translate(${margin.left / 2}, ${margin.top + plotTopPadding + ((size.height - margin.top - plotTopPadding - margin.bottom) / 2)}) rotate(-90)`)
         .append("text")
         .text("Average IMDB Rating")
         .attr("text-anchor", "middle")
@@ -385,12 +386,23 @@ export default function McuRatingsLineChart({selectedReviewsYear, setReviewsYear
         // Generate title
         const title = svg.append('g')
         .append("text")
-        .attr("transform", `translate(${margin.left + ((size.width - margin.left) / 2)}, ${margin.top - titleGraphPadding})`)
+        .attr("transform", `translate(${margin.left + ((size.width - margin.left) / 2)}, ${margin.top - titleGraphPadding + 10})`)
         .style("text-anchor", "middle")
         .style("font-size", '15px')
         .style("font-weight", 900)
-        .text("Average IMDB Rating Over Time"); 
+        .text("Average MCU Movie IMDB Rating Over Time"); 
 
+        const hint = svg.append("text")
+        .attr("x", margin.left + 20)
+        .attr("y", margin.top + 170)
+        .style("text-anchor", "start")
+        .style("font-size", "10px")
+        .style("font-weight", 500)
+        .style("fill", "rgba(0,0,0,0.55)");
+
+        hint.append("tspan").attr("x", margin.left + 20).attr("dy", 0).text("Hover over the dot for max, min,")
+        hint.append("tspan").attr("x", margin.left + 20).attr("dy", "1.15em").text("and average ratings.")
+        hint.append("tspan").attr("x", margin.left + 20).attr("dy", "1.15em").text("Click the dot to view reviews")
     }
 
     return (

@@ -590,16 +590,31 @@ export default function McuConnections() {
       <div
         style={{
           position: 'absolute',
-          top: 10,
-          left: 18,
+          top: 34,
+          left: 20,
           zIndex: 20,
-          fontSize: 11,
-          fontWeight: 400,
+          fontSize: 11.5,
+          fontWeight: 500,
           letterSpacing: '0.01em',
-          color: 'rgba(0,0,0,0.45)'
+          color: 'rgba(0,0,0,0.58)'
         }}
       >
         Hover over the dot to highlight related movies
+      </div>
+
+      <div
+        style={{
+          position: 'absolute',
+          top: 20,
+          right: 18,
+          zIndex: 20,
+          fontSize: 11,
+          fontWeight: 500,
+          letterSpacing: '0.01em',
+          color: 'rgba(0,0,0,0.52)'
+        }}
+      >
+        Click the buttons to filter the connection lines
       </div>
 
       <div

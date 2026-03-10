@@ -572,6 +572,35 @@ export default function McuConnectionsPhase46() {
       .style('font-size', '12px')
       .style('fill', 'rgba(0,0,0,0.75)')
       .text(d => d.label)
+
+    const mediaLegend = phaseLegend.append('g').attr('transform', 'translate(420, 0)')
+    const mediaLegendItems: Array<{ mediaType: MediaType; label: string }> = [
+      { mediaType: 'movie', label: 'Movies' },
+      { mediaType: 'show', label: 'TV Shows' }
+    ]
+
+    const mItem = mediaLegend
+      .selectAll('g.media-item')
+      .data(mediaLegendItems)
+      .join('g')
+      .attr('class', 'media-item')
+      .attr('transform', (_d, i) => `translate(${i * 110}, 0)`)
+
+    mItem
+      .append('path')
+      .attr('d', d => markerPath(d.mediaType, 5) ?? '')
+      .attr('transform', 'translate(0, 0)')
+      .attr('fill', d => dotFill[d.mediaType])
+      .attr('stroke', d => dotStroke[d.mediaType])
+      .attr('stroke-width', 1)
+
+    mItem
+      .append('text')
+      .attr('x', 10)
+      .attr('y', 4)
+      .style('font-size', '12px')
+      .style('fill', 'rgba(0,0,0,0.75)')
+      .text(d => d.label)
   }, [entries, size, filterMode])
 
   const btnStyle = (active: boolean): React.CSSProperties => ({
@@ -598,6 +627,36 @@ export default function McuConnectionsPhase46() {
         justifyContent: 'center'
       }}
     >
+      <div
+        style={{
+          position: 'absolute',
+          top: 34,
+          left: 20,
+          zIndex: 20,
+          fontSize: 11.5,
+          fontWeight: 500,
+          letterSpacing: '0.01em',
+          color: 'rgba(0,0,0,0.58)'
+        }}
+      >
+        Hover over the dot to highlight related movies
+      </div>
+
+      <div
+        style={{
+          position: 'absolute',
+          top: 10,
+          right: 18,
+          zIndex: 20,
+          fontSize: 11,
+          fontWeight: 500,
+          letterSpacing: '0.01em',
+          color: 'rgba(0,0,0,0.52)'
+        }}
+      >
+        Click the buttons to filter the connection lines
+      </div>
+
       <div
         style={{
           position: 'absolute',

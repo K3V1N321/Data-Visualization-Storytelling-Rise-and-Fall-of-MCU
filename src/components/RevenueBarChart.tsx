@@ -375,6 +375,15 @@ export default function RevenueBarChart({timePeriod}) {
         .style("font-size", '15px')
         .style("font-weight", 900)
         .text(titleText) 
+
+        svg.append("text")
+        .attr("x", margin.left + 20)
+        .attr("y", margin.top + 90)
+        .style("text-anchor", "start")
+        .style("font-size", "11px")
+        .style("font-weight", 500)
+        .style("fill", "rgba(0,0,0,0.55)")
+        .text("Hover over the bar to see the revenue breakdown")
     }
 
 
