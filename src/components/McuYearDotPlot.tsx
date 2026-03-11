@@ -219,7 +219,7 @@ export default function McuYearDotPlot() {
     svg
       .append('text')
       .attr('x', x0)
-      .attr('y', margin.top + 80)
+      .attr('y', margin.top + 22)
       .style('text-anchor', 'start')
       .style('font-size', '11px')
       .style('font-weight', 500)

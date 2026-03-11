@@ -456,9 +456,12 @@ export default function McuConnectionsPhase46() {
             (d.type !== 'sequel' && (d.from === hoverTitle || d.to === hoverTitle))
         }
       } else {
-        const outgoing = arcsWithLane.filter(d => d.from === hoverTitle)
-        for (const a of outgoing) highlightTitles.add(a.to)
-        highlightArc = d => d.from === hoverTitle
+        const connected = arcsWithLane.filter(d => d.from === hoverTitle || d.to === hoverTitle)
+        for (const a of connected) {
+          highlightTitles.add(a.from)
+          highlightTitles.add(a.to)
+        }
+        highlightArc = d => d.from === hoverTitle || d.to === hoverTitle
       }
 
       svg

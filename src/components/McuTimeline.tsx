@@ -762,7 +762,7 @@ export default function McuTimeline() {
     const hint = svg
       .append('text')
       .attr('x', margin.left)
-      .attr('y', margin.top + 2)
+      .attr('y', margin.top + 10)
       .style('text-anchor', 'start')
       .style('font-size', '11.5px')
       .style('font-weight', 500)

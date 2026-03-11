@@ -31,6 +31,21 @@ function Layout() {
   const DOT_PLOT_HEIGHT = 380
   const LINE_CHART_HEIGHT = 300
   const SCATTER_PLOT_HEIGHT = 400
+  const SECTION_TITLE_PL = 17
+  const h2TitleSx = {
+    pl: SECTION_TITLE_PL,
+    mb: 0,
+    display: 'inline-block',
+    alignSelf: 'flex-start',
+    textDecoration: 'underline',
+    textDecorationThickness: '3px',
+    textUnderlineOffset: '8px',
+    textDecorationColor: 'rgba(0,0,0,0.55)'
+  }
+  const h3TitleSx = {
+    pl: SECTION_TITLE_PL,
+    mb: 0
+  }
 
   const [selectedReviewsYear, setReviewsYear] = useState<Number | null>(null);  
   return (
@@ -66,6 +81,8 @@ function Layout() {
           </Box>
         </Box>
 
+        <McuNarration section = {"intro above timeline"}/>
+
         {/* ===== TIMELINE PANEL (TOP) ===== */}
         <Grid
           container
@@ -89,8 +106,9 @@ function Layout() {
               <Box
                 sx={{
                   width: '95vw',       
-                  maxWidth: 1800,       
+                  maxWidth: 2000,       
                   height: '100%',       
+                  ml: 3,
                   p: 0.5,
                   border: '1px solid #e0e0e0',
                   borderRadius: 2,
@@ -106,11 +124,19 @@ function Layout() {
             </Box>
           </Grid>
         </Grid>
+
         <McuNarration section = {"introduction"}/>
 
-        <h2>Rise of MCU</h2>
+        <Box component="h2" sx={h2TitleSx}>
+          Rise of MCU
+        </Box>
 
-        <h3>Interconnected Storytelling</h3>
+        <McuNarration section = {"RiseofMCUIntro"}/>
+
+        <Box component="h3" sx={h3TitleSx}>
+          1. Interconnected Storytelling
+        </Box>
+        <McuNarration section = {"connections intro above chart"}/>
 
        {/* ===== CONNECTIONS PANEL ===== */}
         <Grid
@@ -135,6 +161,7 @@ function Layout() {
                   width: '95vw',
                   maxWidth: 1800,
                   height: '100%',
+                  ml: 1.5,
                   p: 2,
                   border: '1px solid #e0e0e0',
                   borderRadius: 2,
@@ -151,55 +178,161 @@ function Layout() {
         </Grid>
         <McuNarration section = {"connections"}/>
 
-        <h3>Global Appeal and Box Office Success</h3>
-        {/* ===== BOTTOM PANEL (FUTURE VIEWS) ===== */}
-        <Grid container spacing = {1} sx = {{width: "50%", height: BAR_CHART_HEIGHT, flex: "0 0 auto"}}>
-          <Grid sx = {{width: "100%", height: "100%"}}>
-            <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
+        <Box component="h3" sx={h3TitleSx}>
+          2. Global Appeal and Box Office Success
+        </Box>
+        <Box
+          sx={{
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'center'
+          }}
+        >
+          <Box
+            sx={{
+              width: '95vw',
+              maxWidth: 1800,
+              display: 'flex',
+              gap: 1,
+              alignItems: 'stretch'
+            }}
+          >
+            <Box
+              sx={{
+                flex: '0 0 45%',
+                minWidth: 0,
+                ml: 13,
+                height: BAR_CHART_HEIGHT,
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 2,
+                bgcolor: '#fafafa',
+                display: 'flex',
+                justifyContent: 'center'
+              }}
+            >
               <RevenueBarChart timePeriod = "early"/>
             </Box>
-          </Grid>
-        </Grid>
-        <McuNarration section = {"box office"}/>
+            <Box
+              sx={{
+                flex: 1,
+                minWidth: 0,
+                display: 'block',
+                pt: 1,
+                pl: 4,
+                pr: 14
+              }}
+            >
+              <McuNarration section = {"box office"} />
+            </Box>
+          </Box>
+        </Box>
         
-        <h2>Decline of MCU</h2>
-        <Grid container spacing = {1} sx = {{width: "50%", height: BAR_CHART_HEIGHT, flex: "0 0 auto"}}>
-          <Grid sx = {{width: "100%", height: "100%"}}>
-            <Box sx = {{width: "100%", height: "100%", p: 2, border: "1px solid #e0e0e0", borderRadius: 2, bgcolor: "#fafafa", display: "flex", justifyContent: "center"}}>
+        <Box component="h2" sx={h2TitleSx}>
+          Decline of MCU
+        </Box>
+        <Box
+          sx={{
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'center'
+          }}
+        >
+          <Box
+            sx={{
+              width: '95vw',
+              maxWidth: 1800,
+              display: 'flex',
+              gap: 1,
+              alignItems: 'stretch'
+            }}
+          >
+            <Box
+              sx={{
+                flex: '0 0 51%',
+                minWidth: 0,
+                ml: 13,
+                height: BAR_CHART_HEIGHT,
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 2,
+                bgcolor: '#fafafa',
+                display: 'flex',
+                justifyContent: 'center'
+              }}
+            >
               <RevenueBarChart timePeriod = "recent"/>
             </Box>
-          </Grid>
-        </Grid>
-        <McuNarration section = {"box office fall"}/>
+            <Box
+              sx={{
+                flex: 1,
+                minWidth: 0,
+                display: 'block',
+                pt: 1,
+                pr: 14,
+                pl: 4
+              }}
+            >
+              <McuNarration section = {"box office fall"}/>
+            </Box>
+          </Box>
+        </Box>
 
-        <h3>Oversaturation of MCU Movies and Shows</h3>
-        {/* ✅ ===== DOT PLOT PANEL (AFTER REVENUE) ===== */}
-        <Grid container spacing={1} sx={{ height: DOT_PLOT_HEIGHT, flex: '0 0 auto' }}>
-          <Grid item xs={12} sx={{ height: '100%' }}>
-            <Box sx={{ height: '100%', width: '100%', display: 'flex', justifyContent: 'center' }}>
-              <Box
-                sx={{
-                  width: '78vw',
-                  maxWidth: 700,
-                  maxHeight: 300,
-                  height: '100%',
-                  p: 2,
-                  border: '1px solid #e0e0e0',
-                  borderRadius: 2,
-                  bgcolor: '#fafafa',
-                  display: 'flex'
-                }}
-              >
-                <Box sx={{ width: '100%', height: '100%', minWidth: 0 }}>
-                  <McuYearDotPlot />
-                </Box>
+        <Box component="h3" sx={h3TitleSx}>
+          1. Oversaturation of MCU Movies and Shows
+        </Box>
+        <Box
+          sx={{
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'center'
+          }}
+        >
+          <Box
+            sx={{
+              width: '95vw',
+              maxWidth: 1800,
+              display: 'flex',
+              gap: 3,
+              alignItems: 'stretch'
+            }}
+          >
+            <Box
+              sx={{
+                flex: 1,
+                minWidth: 0,
+                display: 'block',
+                pt: 1,
+                pl: 14,
+                pr: 0
+              }}
+            >
+              <McuNarration section = {"oversaturation"} />
+            </Box>
+            <Box
+              sx={{
+                flex: '0 0 46%',
+                minWidth: 0,
+                ml: 2,
+                height: DOT_PLOT_HEIGHT,
+                p: 2,
+                border: '1px solid #e0e0e0',
+                borderRadius: 2,
+                bgcolor: '#fafafa',
+                display: 'flex'
+              }}
+            >
+              <Box sx={{ width: '100%', height: '100%', minWidth: 0 }}>
+                <McuYearDotPlot />
               </Box>
             </Box>
-          </Grid>
-        </Grid>
-        <McuNarration section = {"oversaturation"}/>
+          </Box>
+        </Box>
 
-        <h3>"Lack" of Interconnection in Recent Phases</h3>
+        <Box component="h3" sx={h3TitleSx}>
+          2. "Lack" of Interconnection in Recent Phases
+        </Box>
+        <McuNarration section = {"connection barriers above chart"}/>
         <Grid
           container
           spacing={1}
@@ -223,6 +356,7 @@ function Layout() {
                   width: '95vw',
                   maxWidth: 1800,
                   height: `${CONNECTION_PHASE46_HEIGHT}px`,
+                  ml: 1.5,
                   p: 2,
                   border: '1px solid #e0e0e0',
                   borderRadius: 2,
@@ -240,31 +374,41 @@ function Layout() {
         <McuNarration section = {"connection barriers"}/>
         
 
-        <h3>Inconsistent Quality</h3>
-        <Box sx = {{width: "75%", height: LINE_CHART_HEIGHT * 2 + 10, flex: "0 0 auto", bgcolor: "#fafafa", border: "1px solid #e0e0e0", borderRadius: 2, p: 2}}>
-          <Grid container columnSpacing = {2} sx = {{height: "100%"}}>
-            <Grid size = {7} sx = {{display: "flex", flexDirection: "column", gap: 2}}>
+        <Box component="h3" sx={h3TitleSx}>
+          3. Inconsistent Quality
+        </Box>
+        <McuNarration section = {"inconsistency above charts"}/>
+        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+          <Box sx = {{width: "75%", height: LINE_CHART_HEIGHT * 2 + 10, flex: "0 0 auto", bgcolor: "#fafafa", border: "1px solid #e0e0e0", borderRadius: 2, p: 2}}>
+            <Grid container columnSpacing = {2} sx = {{height: "100%"}}>
+              <Grid size = {7} sx = {{display: "flex", flexDirection: "column", gap: 2}}>
 
-                <Box sx = {{width: "100%", height: LINE_CHART_HEIGHT, display: "flex", justifyContent: "center", bgcolor: "#ffffff", borderRadius: 1, boxShadow: "0 4px 12px rgba(0,0,0,0.08)"}}>
-                    <McuRatingsLineChart selectedReviewsYear = {selectedReviewsYear} setReviewsYear = {setReviewsYear}/>
+                  <Box sx = {{width: "100%", height: LINE_CHART_HEIGHT, display: "flex", justifyContent: "center", bgcolor: "#ffffff", borderRadius: 1, boxShadow: "0 4px 12px rgba(0,0,0,0.08)"}}>
+                      <McuRatingsLineChart selectedReviewsYear = {selectedReviewsYear} setReviewsYear = {setReviewsYear}/>
+                  </Box>
+                  <Box sx = {{width: "100%", height: LINE_CHART_HEIGHT, display: "flex", justifyContent: "center", bgcolor: "#ffffff", borderRadius: 1, boxShadow: "0 4px 12px rgba(0,0,0,0.08)"}}>
+                    <McuProfitsLineChart selectedReviewsYear = {selectedReviewsYear} setReviewsYear = {setReviewsYear}/>
+                  </Box>
+              </Grid>
+              
+              <Grid size = {5} sx = {{height: "100%"}}>
+                <Box sx = {{width: "100%", height: "100%", display: "flex", flexDirection: "column"}}>
+                  <McuMoviesReviews selectedReviewsYear = {selectedReviewsYear}/>
                 </Box>
-                <Box sx = {{width: "100%", height: LINE_CHART_HEIGHT, display: "flex", justifyContent: "center", bgcolor: "#ffffff", borderRadius: 1, boxShadow: "0 4px 12px rgba(0,0,0,0.08)"}}>
-                  <McuProfitsLineChart selectedReviewsYear = {selectedReviewsYear} setReviewsYear = {setReviewsYear}/>
-                </Box>
+              </Grid>
             </Grid>
-            
-            <Grid size = {5} sx = {{height: "100%"}}>
-              <Box sx = {{width: "100%", height: "100%", display: "flex", flexDirection: "column"}}>
-                <McuMoviesReviews selectedReviewsYear = {selectedReviewsYear}/>
-              </Box>
-            </Grid>
-          </Grid>
+          </Box>
         </Box>
         <McuNarration section = {"inconsistency"}/>
 
-        <h2>Conclusion</h2>
+        <Box component="h2" sx={h2TitleSx}>
+          Conclusion
+        </Box>
         <McuNarration section = {"conclusion"}/>
 
+        <Box component="h2" sx={{ mb: 0, textAlign: 'center' }}>
+          Explore the MCU Changes Yourself!
+        </Box>
         <Grid
           container
           spacing={1}
@@ -287,6 +431,7 @@ function Layout() {
                   width: '95vw',
                   maxWidth: 1800,
                   height: '100%',
+                  ml: 3,
                   border: '1px solid #e0e0e0',
                   borderRadius: 2,
                   bgcolor: '#fafafa',

@@ -130,7 +130,7 @@ export default function McuMoviesReviews({ selectedReviewsYear }) {
         container.append("div")
         .style("font-size", "11px")
         .style("color", "rgba(0, 0, 0, 0.62)")
-        .html(`Click a point on ratings or profit line chart to view the movies released that year. 
+        .html(`Click a dot on ratings or profit line chart to view the movies released that year. 
             Click a movie to display the top voted IMDB reviews for that movie.
             Click a review to display the body of the review.`
         )
