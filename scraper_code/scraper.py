@@ -4,8 +4,24 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from tqdm import tqdm
+import kagglehub
+import os
 import pandas as pd
 import time
+
+MOVIE_TITLES = [
+    'Iron Man', 'Iron Man 2', 'Iron Man 3', 'The Incredible Hulk',
+    'The Avengers', 'Avengers: Age of Ultron', 'Avengers: Infinity War', 'Avengers: Endgame'
+    'Guardians of the Galaxy', 'Guardians of the Galaxy Vol. 2'
+    'Captain America: The First Avenger', 'Captain America: The Winter Soldier', 'Captain America: Civil War', 'Black Panther', 'Black Panther: Wakanda Forever'
+    'Spider-Man: Homecoming', 'Spider-Man: Far From Home', 'Spider-Man: No Way Home', 'Doctor Strange'
+    'Thor', 'Thor: The Dark World', 'Thor: Ragnarok', 'Thor: Love and Thunder',
+    'Ant-Man', 'Captain Marvel', 'Ant-Man and the Wasp',
+    'Black Widow', 'Shang-Chi and the Legend of the Ten Rings',
+    'Doctor Strange in the Multiverse of Madness', 'Eternals',
+    'Guardians of the Galaxy Vol. 3', 'Ant-Man and the Wasp: Quantumania', 'Deadpool & Wolverine',
+    'The Marvels', 'The Fantastic 4: First Steps', 'Thunderbolts*', 'Captain America: Brave New World'
+]
 
 def get_rating(reviewContent):
     try:
@@ -60,12 +76,9 @@ def get_author_and_date(review):
     return author, date
 
 def scrape_reviews(media, outputFileName):
-    options = Options()
-    options.add_argument("--headless=new")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--window-size=1920,1080")
     driver = webdriver.Chrome()
+    driver.set_page_load_timeout(30)
+
     wait = WebDriverWait(driver = driver, timeout = 30)
 
     titles = []
@@ -161,106 +174,26 @@ def scrape_reviews(media, outputFileName):
 
 
 if __name__ == "__main__":
-    marvelMovies = pd.read_csv("marvel_movies.csv")
-    scrape_reviews(marvelMovies, "marvel_movies_imdb_reviews.csv")
+    # Download TMDB dataset
+    path = kagglehub.dataset_download("asaniczka/tmdb-movies-dataset-2023-930k-movies")
+    data = pd.read_csv(os.path.join(path, "TMDB_movie_dataset_v11.csv"))
+    data = data.drop_duplicates(subset = ["title"])
 
-# if __name__ == "__main__":
-#     options = Options()
-#     options.add_argument("--headless=new")
-#     options.add_argument("--disable-gpu")
-#     options.add_argument("--no-sandbox")
-#     options.add_argument("--window-size=1920,1080")
-#     driver = webdriver.Chrome()
-#     wait = WebDriverWait(driver = driver, timeout = 30)
-
-#     titles = []
-#     ids = []
-#     reviewRatings = []
-#     reviewTitles = []
-#     reviewTexts = []
-#     likes = []
-#     dislikes = []
-#     authors = []
-#     dates = []
-
-#     marvelMovies = pd.read_csv("marvel_movies.csv")
-#     for i in tqdm(range(len(marvelMovies)), desc = "Scraping Reviews"):
-#         title = marvelMovies.loc[i, "title"]
-#         id = marvelMovies.loc[i, "imdb_id"]
-  
-#         url = f"https://www.imdb.com/title/{id}/reviews/?sort=num_votes%2Cdesc"
-
-#         # Try 2 times to access webpage
-#         try:
-#             driver.get(url)
-#             time.sleep(3)
-#             wait.until(expected_conditions.presence_of_all_elements_located((By.TAG_NAME, "article")))
-#         except:
-#             try:
-#                 driver.get(url)
-#                 time.sleep(3)
-#                 wait.until(expected_conditions.presence_of_all_elements_located((By.TAG_NAME, "article")))
-#             # Can't access webpage, move on to next movie
-#             except:
-#                 titles.append(title)
-#                 ids.append(id)
-#                 reviewRatings.append("None")
-#                 reviewTitles.append("None")
-#                 reviewTexts.append("None")
-#                 likes.append("None")
-#                 dislikes.append("None")
-#                 authors.append("None")
-#                 dates.append("None")
-#                 continue
-
-
-#         # Get review elements
-#         try:
-#             reviews = driver.find_elements(by = By.TAG_NAME, value = "article")
-#         # Movie does not have reviews
-#         except:
-#             titles.append(title)
-#             ids.append(id)
-#             reviewRatings.append("None")
-#             reviewTitles.append("None")
-#             reviewTexts.append("None")
-#             likes.append("None")
-#             dislikes.append("None")
-#             authors.append("None")
-#             dates.append("None")
-#             continue
-
-
-#         for j in range(len(reviews)):
-#             review = reviews[j]
-#             reviewCardDiv = review.find_element(by = By.CSS_SELECTOR, value = "[data-testid='review-card-parent']")
-#             reviewContent = reviewCardDiv.find_element(by = By.CLASS_NAME, value = "ipc-list-card__content")
-
-#             rating = get_rating(reviewContent)
-
-#             reviewTitle = get_title(reviewContent)
-            
-#             reviewText = get_review_text(reviewContent, driver, j)
-
-#             numLikes, numDislikes = get_likes_and_dislikes(reviewCardDiv)
-
-#             author, date = get_author_and_date(review)
-                
-#             titles.append(title)
-#             ids.append(id)
-#             reviewRatings.append(rating)
-#             reviewTitles.append(reviewTitle)
-#             reviewTexts.append(reviewText)
-#             likes.append(numLikes)
-#             dislikes.append(numDislikes)
-#             authors.append(author)
-#             dates.append(date)
+    # Filter for only MCU movies
+    marvelMovies = data[data["title"].isin(MOVIE_TITLES)].reset_index(drop=True)
     
-#         reviewDF = {"title": titles, "imdb_id": ids, "author": authors, "date": dates,
-#                     "review_rating": reviewRatings, "review_title": reviewTitles, "review": reviewTexts,
-#                     "likes": likes, "dislikes": dislikes}
-#         pd.DataFrame(reviewDF).to_csv("marvel_reviews.csv", index = False)
+    # Get IMDb ratings of MCU movies (downloaded imdb data)
+    ratings = pd.read_csv("title.ratings.tsv", delimiter = "\t")
+    for i in range(len(marvelMovies)):
+        try:
+            imdbId = marvelMovies.loc[i, "imdb_id"]
 
-#         time.sleep(3)
+            index = ratings.loc[ratings["tconst"] == imdbId].index[0]
+            marvelMovies.loc[i, "imdb_average_rating"] = ratings.loc[index, "averageRating"]
+            marvelMovies.loc[i, "imdb_vote_count"] = ratings.loc[index, "numVotes"]
+        except:
+            continue
+    marvelMovies.to_csv("marvel_movies_tmdb.csv", index = False)
 
-#     driver.quit()
+    marvelMovies = pd.read_csv("marvel_movies_tmdb.csv")
+    scrape_reviews(marvelMovies, "marvel_movies_imdb_reviews.csv")

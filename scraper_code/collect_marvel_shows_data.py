@@ -1,3 +1,4 @@
+from scraper import scrape_reviews
 from tqdm import tqdm
 import pandas as pd
 import requests
@@ -13,15 +14,15 @@ phases = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
           5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
           6, 6, 6]
 
-averageRatings = [7.9, 7.1, 8.2, 7.3, 7.4,
-                  7.3, 6.2, 6.7, 5.2, 7.1,
-                  6.9, 5.8, 6.7, 8.2, 7.3,
-                  5.9, 8.7, 7.2, 7.3, 7.5,
+averageRatings = [7.9, 7.1, 8.6, 7.7, 7.4,
+                  7.3, 6.2, 7.0, 5.2, 7.1,
+                  6.9, 5.8, 6.6, 8.4, 7.3,
+                  5.9, 8.7, 7.2, 6.1, 7.5,
                   8, 4.5, 6.2, 7, 7.5]
-numberVotes = [412492, 278212, 466867, 159148, 241039,
-               307809, 130493, 45726, 207436, 78865,
-               107833, 89313, 45726, 466867, 159148,
-               48363, 51501, 87138, 159148, 17973,
+numberVotes = [412492, 278212, 190256, 160994, 241039,
+               307809, 130493, 19900, 207436, 78865,
+               107833, 89313, 8100, 112434, 159148,
+               48363, 51501, 87138, 33151, 17973,
                87934, 65536, 8999, 21681, 25860]
 
 API_KEY = "def64965d9a7d884c5b1e68e08e70588"
@@ -53,40 +54,6 @@ def get_show_data(title, season):
     time.sleep(1)
 
     return data
-
-
-    seasonDetailsUrl = f"https://api.themoviedb.org/3/tv/{showId}/season/{season}"
-    detailsParams = {
-        "api_key": API_KEY,
-        "language": "en-US"
-    }
-    seasonDetailsResponse = requests.get(seasonDetailsUrl, params = detailsParams).json()
-    episodesDetails = seasonDetailsResponse["episodes"]
-    time.sleep(1)
-
-    for episode in episodesDetails:
-        episodeNumber = episode["episode_number"]
-        externalIdUrl = f"https://api.themoviedb.org/3/tv/{showId}/season/{season}/episode/{episodeNumber}/external_ids"
-        detailsParams = {
-            "api_key": API_KEY,
-            "language": "en-US"
-        }
-        externalIdsResponse = requests.get(externalIdUrl, params = detailsParams).json()
-        imdbId = externalIdsResponse["imdb_id"]
-        episode["show"] = title
-        episode["imdb_id"] = imdbId
-        episodeDf = pd.DataFrame([episode])
-        episodeDf.rename(columns = {"vote_average": "episode_vote_average", "vote_count": "episode_vote_count"}, inplace = True)
-        
-        data["season_number"] = episodeDf.loc[0, "season_number"]
-        data["episode_number"] = episodeDf.loc[0, "episode_number"]
-        data["episode_vote_average"] = episodeDf.loc[0, "episode_vote_average"]
-        data["vote_count"] = episodeDf.loc[0, "episode_vote_count"]
-        data["imdb_id"] = episodeDf.loc[0, "imdb_id"]
-        results.append(data)
-        time.sleep(1)
-    
-    return results
 
 def get_movie_data(title):
     url = f"https://api.themoviedb.org/3/search/movie"
@@ -130,16 +97,20 @@ if __name__ == "__main__":
         try:
             result = get_show_data(show, season)
             results.append({"id": result["id"], "title": title, "phase": phase,
-                            "release_date": result["first_air_date"], "imdb_id": result["imdb_id"], "imdb_average_rating": None, "imdb_vote_count": None,
+                            "release_date": result["first_air_date"], "imdb_id": result["imdb_id"], "imdb_average_rating": averageRatings[i], "imdb_vote_count": numberVotes[i],
                             "backdrop_path": result["backdrop_path"], "poster_path": result["poster_path"],
                             "popularity": result["popularity"], "vote_average": result["vote_average"], "vote_count": result["vote_count"],
                             "overview": result["overview"]})
         except:
             result = get_movie_data(show)
             results.append({"id": result["id"], "title": title, "phase": phase,
-                            "release_date": result["release_date"], "imdb_id": result["imdb_id"], "imdb_average_rating": None, "imdb_vote_count": None,
+                            "release_date": result["release_date"], "imdb_id": result["imdb_id"], "imdb_average_rating": averageRatings[i], "imdb_vote_count": numberVotes[i],
                             "backdrop_path": result["backdrop_path"], "poster_path": result["poster_path"],
-                            "popularity": result["popularity"], "vote_average": result["vote_average"], "vote_count": result["vote_count"]})
+                            "popularity": result["popularity"], "vote_average": result["vote_average"], "vote_count": result["vote_count"],
+                            "overview": result["overview"]})
 
-    pd.DataFrame(results).to_csv("marvel_shows_data.csv", index = False)
+    data = pd.DataFrame(results)
+    data.to_csv("marvel_shows_data.csv", index = False)
+
+    scrape_reviews(data, "marvel_shows_imdb_reviews.csv")
         
