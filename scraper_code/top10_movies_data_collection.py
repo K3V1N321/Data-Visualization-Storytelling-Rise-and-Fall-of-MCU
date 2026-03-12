@@ -3,7 +3,8 @@ import pandas as pd
 import requests
 import time
 
-API_KEY = "def64965d9a7d884c5b1e68e08e70588"
+# Need TMDB API key
+API_KEY = "KEY"
 
 def get_top_revenue_movies(year):
     url = f"https://api.themoviedb.org/3/discover/movie"

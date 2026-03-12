@@ -25,7 +25,8 @@ numberVotes = [412492, 278212, 190256, 160994, 241039,
                48363, 51501, 87138, 33151, 17973,
                87934, 65536, 8999, 21681, 25860]
 
-API_KEY = "def64965d9a7d884c5b1e68e08e70588"
+# Need TMDB API key
+API_KEY = "KEY"
 
 def get_show_data(title, season):
     results = []
