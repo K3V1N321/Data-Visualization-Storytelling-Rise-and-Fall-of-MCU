@@ -132,6 +132,33 @@ export default function McuProfitsLineChart({selectedReviewsYear, setReviewsYear
         .attr("stroke-width", pointStrokeWidth);
     }
 
+    useEffect(() => {
+        const selectedPoints = d3.selectAll(".average-profit.point-selected");
+
+        if (selectedPoints.size() == 0) {
+            d3.select(`#average-profit-${selectedReviewsYear}`).attr("class", "average-profit point-selected");
+            highlightPoints(selectedReviewsYear);
+        }
+        else {
+            const previousSelectedYear = selectedPoints.data()[0].year;
+            if (previousSelectedYear != selectedReviewsYear) {
+                // Unhighlight previously selected point
+                selectedPoints.attr("class", "average-profit point");
+                resetHighlightedPoints(previousSelectedYear)
+
+                // Highlight selected point
+                d3.select(`#average-profit-${selectedReviewsYear}`).attr("class", "average-profit point-selected");
+                highlightPoints(selectedReviewsYear);
+            }
+            else {
+                // Unhighlight previously selected point
+                selectedPoints.attr("class", "average-profit point");
+                resetHighlightedPoints(previousSelectedYear)
+            }
+        }
+
+    }, [selectedReviewsYear])
+
     function generateLineChart() {
         let formattedData: YearlyProfitData[] = [];
         const years = [... new Set(movies.map((movie) => movie.releaseYear))].sort((a, b) => a - b);
@@ -243,7 +270,7 @@ export default function McuProfitsLineChart({selectedReviewsYear, setReviewsYear
         
 
         yearPointsContainers.append("circle")
-        .attr("class", "point")
+        .attr("class", "average-profit point")
         .attr("id", (dataPoint) => `average-profit-${dataPoint.year}`)
         .attr("cx", (dataPoint) => xScale(dataPoint.year) + xScale.bandwidth() / 2)
         .attr("cy", (dataPoint) => yScale(dataPoint.averageProfit))
@@ -270,7 +297,7 @@ export default function McuProfitsLineChart({selectedReviewsYear, setReviewsYear
             .style("top", `${event.pageY - 10}px`)
         })
         .on("mouseout", function(event, dataPoint) {
-            if (d3.select(this).attr("class") == "point") {
+            if (d3.select(this).attr("class") == "average-profit point") {
                 resetHighlightedPoints(dataPoint.year)
             }
 
@@ -279,23 +306,20 @@ export default function McuProfitsLineChart({selectedReviewsYear, setReviewsYear
             .style("visibility", "hidden");
         })
         .on("click", function(event, dataPoint) {
-            if (selectedReviewsYear == dataPoint.year) {
-                d3.select(this).attr("class", "point");
-                d3.select(`#average-rating-${dataPoint.year}`).attr("class", "point");
-                resetHighlightedPoints(dataPoint.year);
-                selectedReviewsYear = null;
-                setReviewsYear(null);
-            }
-            else {
-                if (selectedReviewsYear != null) {
-                    d3.select(`#average-profit-${selectedReviewsYear}`).attr("class", "point");
-                    d3.select(`#average-rating-${selectedReviewsYear}`).attr("class", "point");
-                    resetHighlightedPoints(selectedReviewsYear);
+            const selectedPoints = d3.selectAll(".average-profit.point-selected");
+            // If there is a point already selected
+            if (selectedPoints.size() > 0) {
+                const selectedYear: number = selectedPoints.data()[0].year;
+                // If the already selected point is the point clicked
+                if (selectedYear == dataPoint.year) {
+                    setReviewsYear(null)
                 }
-
-                d3.select(this).attr("class", "point-selected");
-                d3.select(`#average-rating-${dataPoint.year}`).attr("class", "point-selected");
-                highlightPoints(dataPoint.year);
+                else {
+                    setReviewsYear(dataPoint.year);
+                }
+            }
+            // If there are no points already selected
+            else {
                 selectedReviewsYear = dataPoint.year;
                 setReviewsYear(dataPoint.year);
             }
